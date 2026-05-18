@@ -76,6 +76,9 @@ pub use crate::handlers::xdg_shell::KdeDecorationsModeState;
 use crate::layout::workspace::WorkspaceId;
 use crate::layout::ActivateWindow;
 use crate::niri::{DndIcon, NewClient, State};
+use crate::protocols::color_management::{
+    ColorManagementHandler, ColorManagementState,
+};
 use crate::protocols::ext_workspace::{self, ExtWorkspaceHandler, ExtWorkspaceManagerState};
 use crate::protocols::foreign_toplevel::{
     self, ForeignToplevelHandler, ForeignToplevelManagerState,
@@ -743,8 +746,14 @@ impl GammaControlHandler for State {
     }
 
     fn get_gamma_size(&mut self, output: &Output) -> Option<u32> {
+        // Disable gamma control when HDR is active on this output.
+        if let Some(state) = self.niri.output_state.get(output) {
+            if state.hdr_enabled {
+                return None;
+            }
+        }
         match self.backend.tty().get_gamma_size(output) {
-            Ok(0) => None, // Setting gamma is not supported.
+            Ok(0) => None,
             Ok(size) => Some(size),
             Err(err) => {
                 warn!(
@@ -757,6 +766,11 @@ impl GammaControlHandler for State {
     }
 
     fn set_gamma(&mut self, output: &Output, ramp: Option<Vec<u16>>) -> Option<()> {
+        if let Some(state) = self.niri.output_state.get(output) {
+            if state.hdr_enabled {
+                return None;
+            }
+        }
         match self.backend.tty().set_gamma(output, ramp) {
             Ok(()) => Some(()),
             Err(err) => {
@@ -767,6 +781,12 @@ impl GammaControlHandler for State {
     }
 }
 delegate_gamma_control!(State);
+
+impl ColorManagementHandler for State {
+    fn color_management_state(&mut self) -> &mut ColorManagementState {
+        &mut self.niri.color_management_state
+    }
+}
 
 struct UrgentOnlyMarker;
 

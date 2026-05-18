@@ -5,7 +5,9 @@ use knuffel::decode::Context;
 use knuffel::errors::DecodeError;
 use knuffel::traits::ErrorSpan;
 use knuffel::Decode;
-use niri_ipc::{ConfiguredMode, HSyncPolarity, Transform, VSyncPolarity};
+use niri_ipc::{
+    ConfiguredMode, HdrBitDepth, HdrColorspace, HSyncPolarity, Transform, VSyncPolarity,
+};
 
 use crate::gestures::HotCorners;
 use crate::{Color, FloatOrInt, LayoutPart};
@@ -76,20 +78,28 @@ pub struct Output {
     pub hot_corners: Option<HotCorners>,
     #[knuffel(child)]
     pub layout: Option<LayoutPart>,
+    #[knuffel(child)]
+pub hdr: Option<HdrOutput>,
 }
 
-impl Output {
-    pub fn is_vrr_always_on(&self) -> bool {
-        self.variable_refresh_rate == Some(Vrr { on_demand: false })
-    }
-
-    pub fn is_vrr_on_demand(&self) -> bool {
-        self.variable_refresh_rate == Some(Vrr { on_demand: true })
-    }
-
-    pub fn is_vrr_always_off(&self) -> bool {
-        self.variable_refresh_rate.is_none()
-    }
+#[derive(knuffel::Decode, Debug, Clone, PartialEq)]
+pub struct HdrOutput {
+    #[knuffel(property, default = false)]
+    pub enabled: bool,
+    #[knuffel(property)]
+    pub max_luminance: Option<f64>,
+    #[knuffel(property)]
+    pub min_luminance: Option<f64>,
+    #[knuffel(property)]
+    pub max_cll: Option<f64>,
+    #[knuffel(property)]
+    pub max_fall: Option<f64>,
+    #[knuffel(property)]
+    pub sdr_brightness: Option<f64>,
+    #[knuffel(property, str)]
+    pub colorspace: Option<HdrColorspace>,
+    #[knuffel(property, str)]
+    pub bit_depth: Option<HdrBitDepth>,
 }
 
 impl Default for Output {
@@ -108,7 +118,22 @@ impl Default for Output {
             backdrop_color: None,
             hot_corners: None,
             layout: None,
+            hdr: None,
         }
+    }
+}
+
+impl Output {
+    pub fn is_vrr_always_on(&self) -> bool {
+        self.variable_refresh_rate == Some(Vrr { on_demand: false })
+    }
+
+    pub fn is_vrr_on_demand(&self) -> bool {
+        self.variable_refresh_rate == Some(Vrr { on_demand: true })
+    }
+
+    pub fn is_vrr_always_off(&self) -> bool {
+        self.variable_refresh_rate.is_none()
     }
 }
 

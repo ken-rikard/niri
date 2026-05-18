@@ -174,7 +174,7 @@ impl Winit {
 
         self.create_dmabuf_global(niri);
 
-        niri.add_output(self.output.clone(), None, false);
+        niri.add_output(self.output.clone(), None, false, false);
     }
 
     pub fn create_dmabuf_global(&mut self, niri: &mut Niri) {

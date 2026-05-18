@@ -29,10 +29,11 @@ use smithay::backend::drm::{
 use smithay::backend::egl::context::ContextPriority;
 use smithay::backend::egl::{EGLDevice, EGLDisplay};
 use smithay::backend::libinput::{LibinputInputBackend, LibinputSessionInterface};
-use smithay::backend::renderer::gles::GlesRenderer;
+use smithay::backend::renderer::element::{Element, Kind, RenderElement};
+use smithay::backend::renderer::gles::{GlesRenderer, GlesTexture};
 use smithay::backend::renderer::multigpu::gbm::GbmGlesBackend;
 use smithay::backend::renderer::multigpu::{GpuManager, MultiFrame, MultiRenderer};
-use smithay::backend::renderer::{DebugFlags, ImportDma, ImportEgl, RendererSuper};
+use smithay::backend::renderer::{Bind, Color32F, DebugFlags, Frame, ImportDma, ImportEgl, Offscreen, Renderer, RendererSuper};
 use smithay::backend::session::libseat::LibSeatSession;
 use smithay::backend::session::{Event as SessionEvent, Session};
 use smithay::backend::udev::{self, UdevBackend, UdevEvent};
@@ -51,7 +52,7 @@ use smithay::reexports::input::Libinput;
 use smithay::reexports::rustix::fs::OFlags;
 use smithay::reexports::wayland_protocols;
 use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
-use smithay::utils::{DeviceFd, Transform};
+use smithay::utils::{DeviceFd, Point, Rectangle, Scale, Transform};
 use smithay::wayland::dmabuf::{DmabufFeedback, DmabufFeedbackBuilder, DmabufGlobal};
 use smithay::wayland::drm_lease::{
     DrmLease, DrmLeaseBuilder, DrmLeaseRequest, DrmLeaseState, LeaseRejected,
@@ -64,9 +65,11 @@ use wayland_protocols::wp::presentation_time::server::wp_presentation_feedback;
 use super::{IpcOutputMap, RenderResult};
 use crate::backend::OutputId;
 use crate::frame_clock::FrameClock;
-use crate::niri::{Niri, RedrawState, State};
+use crate::niri::{Niri, OutputRenderElements, RedrawState, State};
 use crate::render_helpers::debug::draw_damage;
-use crate::render_helpers::renderer::AsGlesRenderer;
+use crate::render_helpers::hdr_output::HdrOutputRenderElement;
+use crate::render_helpers::renderer::{AsGlesFrame, AsGlesRenderer};
+use crate::render_helpers::texture::TextureRenderElement;
 use crate::render_helpers::{resources, shaders, RenderCtx, RenderTarget};
 use crate::utils::{get_monotonic_time, is_laptop_panel, logical_output, PanelOrientation};
 
@@ -76,6 +79,34 @@ const SUPPORTED_COLOR_FORMATS: [Fourcc; 4] = [
     Fourcc::Argb8888,
     Fourcc::Abgr8888,
 ];
+
+const SUPPORTED_HDR_COLOR_FORMATS: [Fourcc; 4] = [
+    Fourcc::Xrgb2101010,
+    Fourcc::Xbgr2101010,
+    Fourcc::Argb2101010,
+    Fourcc::Abgr2101010,
+];
+
+const SUPPORTED_HDR_FLOAT_FORMATS: [Fourcc; 2] = [
+    Fourcc::Xrgb16161616f,
+    Fourcc::Argb16161616f,
+];
+
+fn get_hdr_config(
+    config: &niri_config::Output,
+) -> (bool, niri_ipc::HdrBitDepth) {
+    let hdr_enabled = config.hdr.as_ref().map(|h| h.enabled).unwrap_or(false);
+    let bit_depth = config
+        .hdr
+        .as_ref()
+        .and_then(|h| h.bit_depth)
+        .unwrap_or(if hdr_enabled {
+            niri_ipc::HdrBitDepth::Bpp10
+        } else {
+            niri_ipc::HdrBitDepth::Bpp8
+        });
+    (hdr_enabled, bit_depth)
+}
 
 pub struct Tty {
     config: Rc<RefCell<Config>>,
@@ -679,9 +710,20 @@ impl Tty {
                         if let Ok(props) =
                             ConnectorProperties::try_new(&device.drm, surface.connector)
                         {
-                            match reset_hdr(&props) {
+                            // Re-apply HDR metadata on session resume; default to max luminance of 1000
+                            // if we don't have the per-output state here. The per-output state in
+                            // Niri::output_state has the actual values from config.
+                            match set_hdr_metadata(
+                                &props,
+                                true,
+                                1000.0,
+                                0.005,
+                                1000.0,
+                                400.0,
+                                DRM_MODE_COLORIMETRY_BT2020_RGB,
+                            ) {
                                 Ok(()) => (),
-                                Err(err) => debug!("couldn't reset HDR properties: {err:?}"),
+                                Err(err) => debug!("couldn't set HDR properties on resume: {err:?}"),
                             }
                         } else {
                             warn!("failed to get connector properties");
@@ -1302,10 +1344,26 @@ impl Tty {
         debug!("picking mode: {mode:?}");
 
         let mut orientation = None;
+        let mut hdr_cfg_enabled = false;
+        let mut hdr_max_lum = 1000.0;
+        let mut hdr_min_lum = 0.005;
+        let mut hdr_max_cll = 1000.0;
+        let mut hdr_max_fall = 400.0;
+        let mut hdr_colorspace = DRM_MODE_COLORIMETRY_BT2020_RGB;
         if let Ok(props) = ConnectorProperties::try_new(&device.drm, connector.handle()) {
-            match reset_hdr(&props) {
-                Ok(()) => (),
-                Err(err) => debug!("couldn't reset HDR properties: {err:?}"),
+            debug!("connector properties available, checking HDR config");
+            if let Some(ref hdr_cfg) = config.hdr {
+                debug!("HDR config found: enabled={}, max_luminance={:?}", hdr_cfg.enabled, hdr_cfg.max_luminance);
+                hdr_cfg_enabled = hdr_cfg.enabled;
+                hdr_max_lum = hdr_cfg.max_luminance.unwrap_or(1000.0);
+                hdr_min_lum = hdr_cfg.min_luminance.unwrap_or(0.005);
+                hdr_max_cll = hdr_cfg.max_cll.unwrap_or(hdr_max_lum);
+                hdr_max_fall = hdr_cfg.max_fall.unwrap_or(hdr_max_lum * 0.4);
+                if let Some(cs) = hdr_cfg.colorspace {
+                    hdr_colorspace = colorspace_from_config(cs);
+                }
+            } else {
+                debug!("no HDR config found for this output");
             }
 
             match get_panel_orientation(&props) {
@@ -1434,6 +1492,20 @@ impl Tty {
             })
             .collect::<FormatSet>();
 
+        // Choose color formats based on HDR configuration.
+        let (hdr_enabled, bit_depth) = get_hdr_config(&config);
+
+        // Choose color formats based on HDR configuration.
+        let color_formats: &[Fourcc] = if hdr_enabled {
+            match bit_depth {
+                niri_ipc::HdrBitDepth::Bpp10 => &SUPPORTED_HDR_COLOR_FORMATS,
+                niri_ipc::HdrBitDepth::Bpp16f => &SUPPORTED_HDR_FLOAT_FORMATS,
+                niri_ipc::HdrBitDepth::Bpp8 => &SUPPORTED_COLOR_FORMATS,
+            }
+        } else {
+            &SUPPORTED_COLOR_FORMATS
+        };
+
         // Create the compositor.
         let res = DrmCompositor::new(
             OutputModeSource::Auto(output.downgrade()),
@@ -1441,7 +1513,7 @@ impl Tty {
             None,
             device.allocator.clone(),
             GbmFramebufferExporter::new(device.gbm.clone(), device.render_node.into()),
-            SUPPORTED_COLOR_FORMATS,
+            color_formats.iter().copied(),
             // This is only used to pick a good internal format, so it can use the surface's render
             // formats, even though we only ever render on the primary GPU.
             render_formats.clone(),
@@ -1453,6 +1525,14 @@ impl Tty {
             Ok(x) => x,
             Err(err) => {
                 warn!("error creating DRM compositor, will try with invalid modifier: {err:?}");
+
+                // Fall back to 8-bit SDR formats if HDR formats fail.
+                let sdr_formats: &[Fourcc] = if hdr_enabled {
+                    warn!("HDR format allocation failed, falling back to SDR");
+                    &SUPPORTED_COLOR_FORMATS
+                } else {
+                    color_formats
+                };
 
                 let render_formats = render_formats
                     .iter()
@@ -1471,7 +1551,7 @@ impl Tty {
                     None,
                     device.allocator.clone(),
                     GbmFramebufferExporter::new(device.gbm.clone(), device.render_node.into()),
-                    SUPPORTED_COLOR_FORMATS,
+                    sdr_formats.iter().copied(),
                     render_formats,
                     device.drm.cursor_size(),
                     Some(device.gbm.clone()),
@@ -1512,6 +1592,14 @@ impl Tty {
             }
         }
 
+        // Set HDR metadata via atomic commit (must be after surface creation so connector has a CRTC).
+        if let Ok(props) = ConnectorProperties::try_new(&device.drm, connector.handle()) {
+            match set_hdr_metadata(&props, hdr_cfg_enabled, hdr_max_lum, hdr_min_lum, hdr_max_cll, hdr_max_fall, hdr_colorspace) {
+                Ok(()) => info!("HDR metadata set successfully via atomic commit"),
+                Err(err) => warn!("couldn't set HDR properties: {err:?}"),
+            }
+        }
+
         let vrr_enabled = compositor.vrr_enabled();
 
         let vblank_frame_name =
@@ -1542,7 +1630,7 @@ impl Tty {
         let res = device.surfaces.insert(crtc, surface);
         assert!(res.is_none(), "crtc must not have already existed");
 
-        niri.add_output(output.clone(), Some(refresh_interval(mode)), vrr_enabled);
+        niri.add_output(output.clone(), Some(refresh_interval(mode)), vrr_enabled, hdr_enabled);
 
         if niri.monitors_active {
             // Redraw the new monitor.
@@ -1895,6 +1983,28 @@ impl Tty {
             draw_damage(&mut output_state.debug_damage_tracker, &mut elements);
         }
 
+        // Check if HDR is enabled for this output.
+        let output_state = niri.output_state.get(output).unwrap();
+        let hdr_enabled = output_state.hdr_enabled;
+
+        if hdr_enabled {
+            if let Some(hdr_result) = Self::render_hdr_frame(
+                niri,
+                output,
+                &mut renderer,
+                &mut elements,
+                target_presentation_time,
+                &mut surface.compositor,
+                surface.dmabuf_feedback.as_ref(),
+                surface.vblank_frame.as_ref(),
+                &self.config.borrow().debug,
+                &self.config.borrow().outputs,
+            ) {
+                return hdr_result;
+            }
+            // If HDR rendering failed, fall through to SDR path.
+        }
+
         // Overlay planes are disabled by default as they cause weird performance issues on my
         // system.
         let flags = {
@@ -2001,6 +2111,188 @@ impl Tty {
         queue_estimated_vblank_timer(niri, output.clone(), target_presentation_time);
 
         rv
+    }
+
+    fn render_hdr_frame<'a>(
+        niri: &mut Niri,
+        output: &Output,
+        renderer: &mut MultiRenderer<'a, 'a, GbmGlesBackend<GlesRenderer, DrmDeviceFd>, GbmGlesBackend<GlesRenderer, DrmDeviceFd>>,
+        elements: &mut Vec<OutputRenderElements<MultiRenderer<'a, 'a, GbmGlesBackend<GlesRenderer, DrmDeviceFd>, GbmGlesBackend<GlesRenderer, DrmDeviceFd>>>>,
+        target_presentation_time: Duration,
+        drm_compositor: &mut GbmDrmCompositor,
+        dmabuf_feedback: Option<&SurfaceDmabufFeedback>,
+        _vblank_frame: Option<&tracy_client::Frame>,
+        debug: &niri_config::Debug,
+        outputs_config: &niri_config::Outputs,
+    ) -> Option<RenderResult> {
+        // Initialize shaders for this renderer.
+        shaders::init(renderer.as_gles_renderer());
+
+        // Get HDR config values.
+        let name = output.user_data().get::<OutputName>().unwrap();
+        let hdr_cfg = outputs_config.find(name).and_then(|c| c.hdr.clone());
+
+        let sdr_brightness_nits: f32 = hdr_cfg
+            .as_ref()
+            .and_then(|h| h.sdr_brightness)
+            .map(|v| v as f32)
+            .unwrap_or(203.0);
+        let max_nits: f32 = hdr_cfg
+            .as_ref()
+            .and_then(|h| h.max_luminance)
+            .map(|v| v as f32)
+            .unwrap_or(1000.0);
+
+        let output_scale = Scale::from(output.current_scale().fractional_scale());
+        let output_transform = output.current_transform();
+        let output_mode = output.current_mode().unwrap();
+        let output_size = output_mode.size;
+        let buffer_size = output_size.to_logical(1).to_buffer(1, Transform::Normal);
+
+        // Create offscreen texture.
+        let mut offscreen_texture: GlesTexture = renderer
+            .create_buffer(Fourcc::Abgr8888, buffer_size)
+            .inspect_err(|err| warn!("error creating offscreen texture for HDR: {err:?}"))
+            .ok()?;
+
+        // Render elements to offscreen texture.
+        {
+            let mut target = renderer
+                .bind(&mut offscreen_texture)
+                .inspect_err(|err| warn!("error binding offscreen texture for HDR: {err:?}"))
+                .ok()?;
+
+            let mut frame = renderer
+                .render(&mut target, output_size, output_transform)
+                .inspect_err(|err| warn!("error starting HDR offscreen frame: {err:?}"))
+                .ok()?;
+
+            let output_rect = Rectangle::from_size(output_size);
+            let _ = frame.clear(Color32F::TRANSPARENT, &[output_rect]);
+
+            for element in elements {
+                let src = element.src();
+                let dst = element.geometry(output_scale);
+
+                if let Some(mut damage) = output_rect.intersection(dst) {
+                    damage.loc -= dst.loc;
+                    let cache = smithay::utils::user_data::UserDataMap::new();
+                    if element.is_framebuffer_effect() {
+                        let _ = element.capture_framebuffer(&mut frame, src, dst, &cache);
+                    }
+                    let _ = element.draw(&mut frame, src, dst, &[damage], &[], Some(&cache));
+                }
+            }
+
+            let _ = frame.finish();
+        }
+
+        // Create a texture buffer and render element from the offscreen texture.
+        let gles_renderer = renderer.as_gles_renderer();
+        let texture_buffer = crate::render_helpers::texture::TextureBuffer::from_texture(
+            gles_renderer,
+            offscreen_texture.clone(),
+            output_scale,
+            output_transform,
+            vec![],
+        );
+        let texture_elem = TextureRenderElement::from_texture_buffer(
+            texture_buffer,
+            Point::default(),
+            1.0,
+            Some(Rectangle::from_size(buffer_size.to_f64().to_logical(Scale::from(1.0), Transform::Normal))),
+            Some(output_size.to_f64().to_logical(output_scale)),
+            Kind::Unspecified,
+        );
+
+        // Get HDR shader program.
+        let program = {
+            let mut tmp_target = renderer
+                .bind(&mut offscreen_texture)
+                .inspect_err(|err| warn!("error rebinding offscreen texture for HDR shader lookup: {err:?}"))
+                .ok()?;
+            let mut multi_frame = renderer
+                .render(&mut tmp_target, output_size, output_transform)
+                .inspect_err(|err| warn!("error creating frame for HDR shader lookup: {err:?}"))
+                .ok()?;
+            let gles_frame = multi_frame.as_gles_frame();
+            shaders::Shaders::get_from_frame(gles_frame).hdr_output.clone()
+        };
+
+        let program = program.inspect(|_| {}).or_else(|| {
+            warn!("HDR shader not available, falling back to SDR");
+            None
+        })?;
+
+        let hdr_elem = HdrOutputRenderElement::new(
+            texture_elem,
+            Some(program),
+            sdr_brightness_nits,
+            max_nits,
+        );
+        let hdr_elements = vec![OutputRenderElements::HdrOutput(hdr_elem)];
+
+        // Build frame flags for HDR (disable scanout to force composition).
+        let flags = {
+            let mut flags = FrameFlags::empty();
+            if debug.enable_overlay_planes {
+                flags.insert(FrameFlags::ALLOW_OVERLAY_PLANE_SCANOUT);
+            }
+            if debug.disable_cursor_plane {
+                flags.remove(FrameFlags::ALLOW_CURSOR_PLANE_SCANOUT);
+            } else {
+                flags.insert(FrameFlags::ALLOW_CURSOR_PLANE_SCANOUT);
+            }
+            flags
+        };
+
+        // Render with DRM compositor.
+        let res = drm_compositor
+            .render_frame::<_, _>(renderer, &hdr_elements, [0.; 4], flags)
+            .inspect_err(|err| warn!("error rendering HDR frame: {err}"))
+            .ok()?;
+
+        if res.needs_sync() {
+            if let PrimaryPlaneElement::Swapchain(element) = res.primary_element {
+                let _ = element.sync.wait();
+            }
+        }
+
+        niri.update_primary_scanout_output(output, &res.states);
+        if let Some(dmabuf_feedback) = dmabuf_feedback {
+            niri.send_dmabuf_feedbacks(output, dmabuf_feedback, &res.states);
+        }
+
+        if !res.is_empty {
+            let presentation_feedbacks = niri.take_presentation_feedbacks(output, &res.states);
+            let data = (presentation_feedbacks, target_presentation_time);
+
+            if drm_compositor.queue_frame(data).is_ok() {
+                let output_state = niri.output_state.get_mut(output).unwrap();
+                let new_state = RedrawState::WaitingForVBlank {
+                    redraw_needed: false,
+                };
+                match mem::replace(&mut output_state.redraw_state, new_state) {
+                    RedrawState::Idle => unreachable!(),
+                    RedrawState::Queued => (),
+                    RedrawState::WaitingForVBlank { .. } => unreachable!(),
+                    RedrawState::WaitingForEstimatedVBlank(_) => unreachable!(),
+                    RedrawState::WaitingForEstimatedVBlankAndQueued(token) => {
+                        niri.event_loop.remove(token);
+                    }
+                };
+
+                output_state.frame_callback_sequence =
+                    output_state.frame_callback_sequence.wrapping_add(1);
+
+                return Some(RenderResult::Submitted);
+            } else {
+                warn!("error queueing HDR frame");
+            }
+        }
+
+        queue_estimated_vblank_timer(niri, output.clone(), target_presentation_time);
+        Some(RenderResult::NoDamage)
     }
 
     pub fn change_vt(&mut self, vt: i32) {
@@ -3265,32 +3557,150 @@ impl<'a> ConnectorProperties<'a> {
 }
 
 const DRM_MODE_COLORIMETRY_DEFAULT: u64 = 0;
+const DRM_MODE_COLORIMETRY_BT2020_RGB: u64 = 9;
 
-fn reset_hdr(props: &ConnectorProperties) -> anyhow::Result<()> {
-    let (info, value) = props.find(c"HDR_OUTPUT_METADATA")?;
-    let property::ValueType::Blob = info.value_type() else {
-        bail!("wrong property type")
-    };
+#[derive(Debug, Clone, Copy)]
+#[repr(C)]
+struct HdrOutputMetadata {
+    metadata_type: u32,
+    hdmi_metadata_type1: HdrMetadataInfoframe,
+}
 
-    if *value != 0 {
-        props
-            .device
-            .set_property(props.connector, info.handle(), 0)
-            .context("error setting property")?;
+#[derive(Debug, Clone, Copy)]
+#[repr(C)]
+struct HdrMetadataInfoframe {
+    eotf: u8,
+    metadata_type: u8,
+    display_primaries: [HdrPrimaries; 3],
+    white_point: HdrPrimaries,
+    max_display_mastering_luminance: u16,
+    min_display_mastering_luminance: u16,
+    max_cll: u16,
+    max_fall: u16,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[repr(C)]
+struct HdrPrimaries {
+    x: u16,
+    y: u16,
+}
+
+unsafe impl bytemuck::Zeroable for HdrOutputMetadata {}
+unsafe impl bytemuck::Pod for HdrOutputMetadata {}
+
+impl HdrOutputMetadata {
+    fn new(
+        max_luminance: f64,
+        min_luminance: f64,
+        max_cll: f64,
+        max_fall: f64,
+    ) -> Self {
+        Self {
+            metadata_type: 0, // HDMI_STATIC_METADATA_TYPE1
+            hdmi_metadata_type1: HdrMetadataInfoframe {
+                eotf: 2,       // SMPTE ST 2084 (PQ)
+                metadata_type: 0,
+                // BT.2020 display primaries (CIE 1931 xy, units of 0.00002)
+                display_primaries: [
+                    HdrPrimaries { x: 35400, y: 14600 },  // Red (0.708, 0.292)
+                    HdrPrimaries { x: 8500, y: 39850 },   // Green (0.170, 0.797)
+                    HdrPrimaries { x: 6550, y: 2300 },    // Blue (0.131, 0.046)
+                ],
+                // D65 white point
+                white_point: HdrPrimaries { x: 15635, y: 16450 },
+                // max in 1 cd/m² units, min in 0.0001 cd/m² units
+                max_display_mastering_luminance: max_luminance.clamp(1.0, 65535.0) as u16,
+                min_display_mastering_luminance: (min_luminance * 10000.0).clamp(1.0, 65535.0) as u16,
+                max_cll: max_cll.clamp(1.0, 65535.0) as u16,
+                max_fall: max_fall.clamp(1.0, 65535.0) as u16,
+            },
+        }
+    }
+}
+
+fn set_hdr_metadata(
+    props: &ConnectorProperties,
+    enabled: bool,
+    max_luminance: f64,
+    min_luminance: f64,
+    max_cll: f64,
+    max_fall: f64,
+    target_colorspace: u64,
+) -> anyhow::Result<()> {
+    let (hdr_info, hdr_value) = props.find(c"HDR_OUTPUT_METADATA")?;
+    let (cs_info, cs_value) = props.find(c"Colorspace")?;
+
+    info!("HDR_OUTPUT_METADATA: handle={:?}, current_value={}", 
+          hdr_info.handle(), hdr_value);
+    info!("Colorspace: handle={:?}, current_value={}", 
+          cs_info.handle(), cs_value);
+
+    // Try setting colorspace via legacy set_property first
+    let colorspace_value = if enabled { target_colorspace } else { DRM_MODE_COLORIMETRY_DEFAULT };
+    match props.device.set_property(props.connector, cs_info.handle(), colorspace_value) {
+        Ok(()) => info!("Colorspace set to {} via legacy set_property", colorspace_value),
+        Err(e) => warn!("Colorspace legacy set_property failed: {} (raw_os_error={:?})", e, e.raw_os_error()),
     }
 
-    let (info, value) = props.find(c"Colorspace")?;
-    let property::ValueType::Enum(_) = info.value_type() else {
-        bail!("wrong property type")
-    };
-    if *value != DRM_MODE_COLORIMETRY_DEFAULT {
-        props
-            .device
-            .set_property(props.connector, info.handle(), DRM_MODE_COLORIMETRY_DEFAULT)
-            .context("error setting property")?;
+    if !enabled {
+        // Just clear HDR_OUTPUT_METADATA via legacy set_property
+        if *hdr_value != 0 {
+            match props.device.set_property(props.connector, hdr_info.handle(), 0) {
+                Ok(()) => info!("HDR_OUTPUT_METADATA cleared via legacy set_property"),
+                Err(e) => warn!("HDR_OUTPUT_METADATA clear failed: {} (raw_os_error={:?})", e, e.raw_os_error()),
+            }
+        }
+        return Ok(());
     }
+
+    let metadata = HdrOutputMetadata::new(max_luminance, min_luminance, max_cll, max_fall);
+    let mut metadata_clone = metadata;
+    let metadata_bytes = bytemuck::bytes_of_mut(&mut metadata_clone);
+    let blob = drm_ffi::mode::create_property_blob(
+        props.device.as_fd(),
+        metadata_bytes,
+    )
+    .context("error creating HDR metadata blob")?;
+    info!("HDR blob created: id={}, size={} bytes", blob.blob_id, metadata_bytes.len());
+
+    // Try setting HDR blob via legacy set_property first
+    match props.device.set_property(props.connector, hdr_info.handle(), u64::from(blob.blob_id)) {
+        Ok(()) => {
+            info!("HDR_OUTPUT_METADATA set via legacy set_property");
+            return Ok(());
+        }
+        Err(e) => warn!("HDR_OUTPUT_METADATA legacy set_property failed: {} (raw_os_error={:?})", e, e.raw_os_error()),
+    }
+
+    // Fall back to atomic commit
+    info!("falling back to atomic commit for HDR");
+    let mut req = AtomicModeReq::new();
+    req.add_property(
+        props.connector,
+        hdr_info.handle(),
+        property::Value::Blob(u64::from(blob.blob_id)),
+    );
+
+    props
+        .device
+        .atomic_commit(AtomicCommitFlags::ALLOW_MODESET, req)
+        .map_err(|e| {
+            warn!("HDR atomic commit failed: {} (raw_os_error={:?})", e, e.raw_os_error());
+            anyhow::anyhow!("error doing HDR atomic commit: {} (raw_os_error={:?})", e, e.raw_os_error())
+        })?;
 
     Ok(())
+}
+
+fn colorspace_from_config(
+    cs: niri_ipc::HdrColorspace,
+) -> u64 {
+    match cs {
+        niri_ipc::HdrColorspace::Bt2020 => DRM_MODE_COLORIMETRY_BT2020_RGB,
+        niri_ipc::HdrColorspace::DisplayP3 => DRM_MODE_COLORIMETRY_DEFAULT,
+        niri_ipc::HdrColorspace::Srgb => DRM_MODE_COLORIMETRY_DEFAULT,
+    }
 }
 
 fn is_vrr_capable(device: &DrmDevice, connector: connector::Handle) -> Option<bool> {

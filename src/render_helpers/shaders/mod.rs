@@ -21,6 +21,7 @@ pub struct Shaders {
     pub custom_resize: RefCell<Option<ShaderProgram>>,
     pub custom_close: RefCell<Option<ShaderProgram>>,
     pub custom_open: RefCell<Option<ShaderProgram>>,
+    pub hdr_output: Option<GlesTexProgram>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -148,6 +149,19 @@ impl Shaders {
             })
             .ok();
 
+        let hdr_output = renderer
+            .compile_custom_texture_shader(
+                include_str!("hdr_output.frag"),
+                &[
+                    UniformName::new("u_sdr_brightness_nits", UniformType::_1f),
+                    UniformName::new("u_max_nits", UniformType::_1f),
+                ],
+            )
+            .map_err(|err| {
+                warn!("error compiling HDR output shader: {err:?}");
+            })
+            .ok();
+
         Self {
             border,
             shadow,
@@ -159,6 +173,7 @@ impl Shaders {
             custom_resize: RefCell::new(None),
             custom_close: RefCell::new(None),
             custom_open: RefCell::new(None),
+            hdr_output,
         }
     }
 

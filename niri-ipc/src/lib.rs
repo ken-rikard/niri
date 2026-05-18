@@ -1097,6 +1097,12 @@ pub enum OutputAction {
         #[cfg_attr(feature = "clap", command(flatten))]
         vrr: VrrToSet,
     },
+    /// Set the HDR mode for this output.
+    Hdr {
+        /// HDR configuration to set.
+        #[cfg_attr(feature = "clap", command(flatten))]
+        hdr: HdrOutputConfig,
+    },
 }
 
 /// Output mode to set.
@@ -1175,6 +1181,98 @@ pub struct ConfiguredPosition {
     pub x: i32,
     /// Logical Y position.
     pub y: i32,
+}
+
+/// HDR output configuration.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "clap", derive(clap::Args))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub struct HdrOutputConfig {
+    /// Whether HDR should be enabled on this output.
+    #[cfg_attr(
+        feature = "clap",
+        arg(
+            value_name = "ON|OFF",
+            action = clap::ArgAction::Set,
+            value_parser = clap::builder::BoolishValueParser::new(),
+            hide_possible_values = true,
+        ),
+    )]
+    pub enabled: bool,
+    /// Maximum luminance in nits (default: from EDID or 1000).
+    #[cfg_attr(feature = "clap", arg(short, long))]
+    pub max_luminance: Option<f64>,
+    /// Minimum luminance in nits (default: 0.005).
+    #[cfg_attr(feature = "clap", arg(short, long))]
+    pub min_luminance: Option<f64>,
+    /// Maximum content light level in nits (default: from EDID or max luminance).
+    #[cfg_attr(feature = "clap", arg(short, long))]
+    pub max_cll: Option<f64>,
+    /// Maximum frame-average light level in nits (default: from EDID or max luminance).
+    #[cfg_attr(feature = "clap", arg(long))]
+    pub max_fall: Option<f64>,
+    /// SDR content brightness in nits (default: 203 per BT.2408).
+    #[cfg_attr(feature = "clap", arg(short = 's', long))]
+    pub sdr_brightness: Option<f64>,
+    /// Color space for HDR (bt2020, display-p3, srgb).
+    #[cfg_attr(feature = "clap", arg(short = 'c', long))]
+    pub colorspace: Option<HdrColorspace>,
+    /// Bit depth for HDR (8, 10, 16f).
+    #[cfg_attr(feature = "clap", arg(short = 'b', long))]
+    pub bit_depth: Option<HdrBitDepth>,
+}
+
+/// HDR color space.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub enum HdrColorspace {
+    /// sRGB color space.
+    Srgb,
+    /// Display P3 color space.
+    DisplayP3,
+    /// BT.2020 color space.
+    Bt2020,
+}
+
+impl std::str::FromStr for HdrColorspace {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "srgb" => Ok(Self::Srgb),
+            "display-p3" => Ok(Self::DisplayP3),
+            "bt2020" => Ok(Self::Bt2020),
+            _ => Err(format!("invalid color space: {s}")),
+        }
+    }
+}
+
+/// HDR bit depth.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub enum HdrBitDepth {
+    /// 8 bits per channel.
+    #[serde(rename = "8")]
+    Bpp8,
+    /// 10 bits per channel.
+    #[serde(rename = "10")]
+    Bpp10,
+    /// 16-bit float per channel.
+    #[serde(rename = "16f")]
+    Bpp16f,
+}
+
+impl std::str::FromStr for HdrBitDepth {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "8" => Ok(Self::Bpp8),
+            "10" => Ok(Self::Bpp10),
+            "16f" => Ok(Self::Bpp16f),
+            _ => Err(format!("invalid bit depth: {s}")),
+        }
+    }
 }
 
 /// Output VRR to set.

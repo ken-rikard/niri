@@ -144,6 +144,7 @@ use crate::layout::{
     HitType, Layout, LayoutElement as _, LayoutElementRenderElement, MonitorRenderElement,
 };
 use crate::niri_render_elements;
+use crate::protocols::color_management::ColorManagementState;
 use crate::protocols::ext_workspace::{self, ExtWorkspaceManagerState};
 use crate::protocols::foreign_toplevel::{self, ForeignToplevelManagerState};
 use crate::protocols::gamma_control::GammaControlManagerState;
@@ -160,7 +161,7 @@ use crate::render_helpers::surface::push_elements_from_surface_tree;
 use crate::render_helpers::texture::TextureBuffer;
 use crate::render_helpers::xray::{Xray, XrayPos};
 use crate::render_helpers::{
-    encompassing_geo, render_to_dmabuf, render_to_encompassing_texture, render_to_shm,
+    encompassing_geo, hdr_output::HdrOutputRenderElement, render_to_dmabuf, render_to_encompassing_texture, render_to_shm,
     render_to_texture, render_to_vec, shaders, RenderCtx, RenderTarget,
 };
 #[cfg(feature = "xdp-gnome-screencast")]
@@ -309,6 +310,7 @@ pub struct Niri {
     pub presentation_state: PresentationState,
     pub security_context_state: SecurityContextState,
     pub gamma_control_manager_state: GammaControlManagerState,
+    pub color_management_state: ColorManagementState,
     pub activation_state: XdgActivationState,
     pub mutter_x11_interop_state: MutterX11InteropManagerState,
 
@@ -449,6 +451,8 @@ pub struct OutputState {
     pub frame_clock: FrameClock,
     pub redraw_state: RedrawState,
     pub on_demand_vrr_enabled: bool,
+    // HDR state for this output.
+    pub hdr_enabled: bool,
     // After the last redraw, some ongoing animations still remain.
     pub unfinished_animations_remain: bool,
     /// Last sequence received in a vblank event.
@@ -1925,6 +1929,18 @@ impl State {
                     None
                 }
             }
+            niri_ipc::OutputAction::Hdr { hdr } => {
+                config.hdr = Some(niri_config::HdrOutput {
+                    enabled: hdr.enabled,
+                    max_luminance: hdr.max_luminance,
+                    min_luminance: hdr.min_luminance,
+                    max_cll: hdr.max_cll,
+                    max_fall: hdr.max_fall,
+                    sdr_brightness: hdr.sdr_brightness,
+                    colorspace: hdr.colorspace,
+                    bit_depth: hdr.bit_depth,
+                });
+            }
         });
 
         self.reload_output_config();
@@ -2366,6 +2382,8 @@ impl Niri {
         let mutter_x11_interop_state =
             MutterX11InteropManagerState::new::<State, _>(&display_handle, move |_| true);
 
+        let color_management_state = ColorManagementState::new();
+
         #[cfg(test)]
         let single_pixel_buffer_state = SinglePixelBufferState::new::<State>(&display_handle);
 
@@ -2557,6 +2575,7 @@ impl Niri {
             presentation_state,
             security_context_state,
             gamma_control_manager_state,
+            color_management_state,
             activation_state,
             mutter_x11_interop_state,
             #[cfg(test)]
@@ -2803,7 +2822,13 @@ impl Niri {
         }
     }
 
-    pub fn add_output(&mut self, output: Output, refresh_interval: Option<Duration>, vrr: bool) {
+    pub fn add_output(
+        &mut self,
+        output: Output,
+        refresh_interval: Option<Duration>,
+        vrr: bool,
+        hdr_enabled: bool,
+    ) {
         let global = output.create_global::<State>(&self.display_handle);
 
         let name = output.user_data().get::<OutputName>().unwrap();
@@ -2863,6 +2888,7 @@ impl Niri {
             global,
             redraw_state: RedrawState::Idle,
             on_demand_vrr_enabled: false,
+            hdr_enabled,
             unfinished_animations_remain: false,
             frame_clock: FrameClock::new(refresh_interval, vrr),
             last_drm_sequence: None,
@@ -6524,6 +6550,7 @@ niri_render_elements! {
         WindowMruUi = WindowMruUiRenderElement<R>,
         ExitConfirmDialog = ExitConfirmDialogRenderElement,
         Texture = PrimaryGpuTextureRenderElement,
+        HdrOutput = HdrOutputRenderElement,
         // Used for the CPU-rendered panels.
         RelocatedMemoryBuffer = RelocateRenderElement<MemoryRenderBufferRenderElement<R>>,
     }
