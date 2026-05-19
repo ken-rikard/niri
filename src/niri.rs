@@ -1768,6 +1768,12 @@ impl State {
             let backdrop_color = Color32F::from(backdrop_color);
 
             if let Some(state) = self.niri.output_state.get_mut(output) {
+                // Update HDR enabled state from config.
+                state.hdr_enabled = config
+                    .and_then(|c| c.hdr.as_ref())
+                    .map(|h| h.enabled)
+                    .unwrap_or(false);
+
                 if state.backdrop_buffer.color() != backdrop_color {
                     state.backdrop_buffer.set_color(backdrop_color);
                     recolored_outputs.push(output.clone());
