@@ -9,7 +9,7 @@ uniform float u_sdr_brightness_nits;
 uniform float u_max_nits;
 uniform float u_sdr_color_intensity;
 
-varying vec2 v_tex_coord;
+varying vec2 v_coords;
 
 // sRGB to linear conversion.
 float srgb_to_linear(float c) {
@@ -67,7 +67,7 @@ vec3 expand_gamut(vec3 linear_rgb, float intensity) {
 
 void main() {
     // Sample input texture (sRGB gamma).
-    vec3 srgb = texture2D(niri_tex, v_tex_coord).rgb;
+    vec3 srgb = texture2D(niri_tex, v_coords).rgb;
 
     // Convert sRGB to linear.
     vec3 linear = vec3(
