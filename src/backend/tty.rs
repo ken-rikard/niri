@@ -2173,31 +2173,19 @@ impl Tty {
                 .ok()?;
 
             let output_rect = Rectangle::from_size(output_size);
-            warn!("offscreen: clear {}x{}", output_size.w, output_size.h);
-            let _ = frame.clear(Color32F::TRANSPARENT, &[output_rect]);
+            let _ = frame.clear(Color32F::BLACK, &[output_rect]);
 
-            let num_elements = elements.len();
-            warn!("offscreen: {} elements to render", num_elements);
-            for (i, element) in elements.iter_mut().enumerate() {
+            for element in elements.iter_mut() {
                 let src = element.src();
                 let dst = element.geometry(output_scale);
-                let elem_id = element.id().clone();
-
-                warn!("offscreen element {}: id={:?}, dst={:?}, src={:?}", i, elem_id, dst, src);
 
                 if let Some(mut damage) = output_rect.intersection(dst) {
                     damage.loc -= dst.loc;
-                    warn!("  intersecting damage={:?}", damage);
                     let cache = smithay::utils::user_data::UserDataMap::new();
                     if element.is_framebuffer_effect() {
                         let _ = element.capture_framebuffer(&mut frame, src, dst, &cache);
                     }
-                    let draw_result = element.draw(&mut frame, src, dst, &[damage], &[], Some(&cache));
-                    if let Err(err) = draw_result {
-                        warn!("  draw error: {:?}", err);
-                    }
-                } else {
-                    warn!("  no intersection with output rect");
+                    let _ = element.draw(&mut frame, src, dst, &[damage], &[], Some(&cache));
                 }
             }
 
