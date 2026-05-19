@@ -2142,6 +2142,11 @@ impl Tty {
             .and_then(|h| h.max_luminance)
             .map(|v| v as f32)
             .unwrap_or(1000.0);
+        let sdr_color_intensity: f32 = hdr_cfg
+            .as_ref()
+            .and_then(|h| h.sdr_color_intensity)
+            .map(|v| v.clamp(0.0, 2.0) as f32)
+            .unwrap_or(1.0);
 
         let output_scale = Scale::from(output.current_scale().fractional_scale());
         let output_transform = output.current_transform();
@@ -2229,6 +2234,7 @@ impl Tty {
             Some(program),
             sdr_brightness_nits,
             max_nits,
+            sdr_color_intensity,
         );
         let hdr_elements = vec![OutputRenderElements::HdrOutput(hdr_elem)];
 

@@ -96,6 +96,11 @@ pub struct HdrOutput {
     pub max_fall: Option<f64>,
     #[knuffel(property)]
     pub sdr_brightness: Option<f64>,
+    /// SDR color intensity (gamut expansion factor). 0.0 to 2.0, default 1.0.
+    /// Values > 1.0 make SDR colors more vivid by expanding the chroma.
+    /// Values < 1.0 desaturate SDR content.
+    #[knuffel(property)]
+    pub sdr_color_intensity: Option<f64>,
     #[knuffel(property, str)]
     pub colorspace: Option<HdrColorspace>,
     #[knuffel(property, str)]

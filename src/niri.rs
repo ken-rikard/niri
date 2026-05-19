@@ -1937,6 +1937,7 @@ impl State {
                     max_cll: hdr.max_cll,
                     max_fall: hdr.max_fall,
                     sdr_brightness: hdr.sdr_brightness,
+                    sdr_color_intensity: hdr.sdr_color_intensity,
                     colorspace: hdr.colorspace,
                     bit_depth: hdr.bit_depth,
                 });

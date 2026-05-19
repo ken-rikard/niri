@@ -7,6 +7,7 @@ precision mediump float;
 uniform sampler2D niri_tex;
 uniform float u_sdr_brightness_nits;
 uniform float u_max_nits;
+uniform float u_sdr_color_intensity;
 
 varying vec2 v_tex_coord;
 
@@ -54,6 +55,16 @@ vec3 srgb_to_bt2020(vec3 rgb) {
     return m * rgb;
 }
 
+// Gamut expansion: scales chroma in linear space.
+// At intensity=1.0, colors pass through unchanged.
+// At intensity>1.0, chroma is amplified for more vibrant colors.
+vec3 expand_gamut(vec3 linear_rgb, float intensity) {
+    // Luminance weights for BT.709/sRGB (Rec. 601 luma).
+    float luminance = dot(linear_rgb, vec3(0.2126, 0.7152, 0.0722));
+    vec3 chroma = linear_rgb - luminance;
+    return luminance + chroma * intensity;
+}
+
 void main() {
     // Sample input texture (sRGB gamma).
     vec3 srgb = texture2D(niri_tex, v_tex_coord).rgb;
@@ -64,6 +75,11 @@ void main() {
         srgb_to_linear(srgb.g),
         srgb_to_linear(srgb.b)
     );
+
+    // Apply gamut expansion (SDR color intensity).
+    // This scales chroma in linear space to make SDR content
+    // more vibrant on wide-gamut HDR displays.
+    linear = expand_gamut(linear, u_sdr_color_intensity);
 
     // Scale SDR content to target brightness in nits.
     float sdr_scale = u_sdr_brightness_nits / max(u_max_nits, 1.0);

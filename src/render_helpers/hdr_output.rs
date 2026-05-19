@@ -15,6 +15,7 @@ pub struct HdrOutputRenderElement {
     program: Option<GlesTexProgram>,
     sdr_brightness_nits: f32,
     max_nits: f32,
+    sdr_color_intensity: f32,
 }
 
 impl HdrOutputRenderElement {
@@ -23,12 +24,14 @@ impl HdrOutputRenderElement {
         program: Option<GlesTexProgram>,
         sdr_brightness_nits: f32,
         max_nits: f32,
+        sdr_color_intensity: f32,
     ) -> Self {
         Self {
             inner: texture,
             program,
             sdr_brightness_nits,
             max_nits,
+            sdr_color_intensity,
         }
     }
 
@@ -37,6 +40,7 @@ impl HdrOutputRenderElement {
         inner: TextureRenderElement<GlesTexture>,
         sdr_brightness_nits: f32,
         max_nits: f32,
+        sdr_color_intensity: f32,
     ) -> Option<Self> {
         let program = Shaders::get_from_frame(frame).hdr_output.clone();
         if program.is_none() {
@@ -47,6 +51,7 @@ impl HdrOutputRenderElement {
             program,
             sdr_brightness_nits,
             max_nits,
+            sdr_color_intensity,
         })
     }
 }
@@ -110,6 +115,7 @@ impl RenderElement<GlesRenderer> for HdrOutputRenderElement {
         let uniforms = vec![
             Uniform::new("u_sdr_brightness_nits", self.sdr_brightness_nits),
             Uniform::new("u_max_nits", self.max_nits),
+            Uniform::new("u_sdr_color_intensity", self.sdr_color_intensity),
         ];
         frame.override_default_tex_program(program.clone(), uniforms);
         RenderElement::<GlesRenderer>::draw(
