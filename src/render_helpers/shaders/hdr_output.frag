@@ -4,7 +4,7 @@ precision highp float;
 precision mediump float;
 #endif
 
-uniform sampler2D niri_tex;
+uniform sampler2D tex;
 uniform float u_sdr_brightness_nits;
 uniform float u_max_nits;
 uniform float u_sdr_color_intensity;
@@ -67,7 +67,7 @@ vec3 expand_gamut(vec3 linear_rgb, float intensity) {
 
 void main() {
     // Sample input texture (sRGB gamma).
-    vec3 srgb = texture2D(niri_tex, v_coords).rgb;
+    vec3 srgb = texture2D(tex, v_coords).rgb;
 
     // Convert sRGB to linear.
     vec3 linear = vec3(
