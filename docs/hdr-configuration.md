@@ -121,17 +121,42 @@ niri msg outputs
 
 ## HDR Pipeline
 
-The compositor applies the following pipeline when HDR is enabled:
+The compositor applies the following pipeline when HDR is enabled. Each element
+is individually processed by the HDR shader during the DRM compositor's single
+render pass (no offscreen texture):
 
 ```
-sRGB input
-  → linear conversion (BT.709 gamma → linear)
-  → gamut expansion (SDR color intensity)
-  → brightness scaling (SDR → nit space)
-  → BT.2020 primaries conversion
-  → PQ encoding (ST 2084)
-  → DRM output (HDR metadata, BT.2020 colorspace, 10-bit)
+Per-element (via shader override):
+  sRGB texture input (premultiplied alpha)
+    → un-premultiply alpha
+    → sRGB gamma decode (BT.709 EOTF)
+    → gamut expansion (SDR color intensity)
+    → brightness scaling (× sdr_brightness nits)
+    → sRGB → BT.2020 primaries conversion
+    → PQ encoding (ST 2084 OETF)
+    → linear-light alpha blending via framebuffer fetch
+    → output to DRM framebuffer (Xrgb2101010, BT2020_RGB)
 ```
+
+### Alpha Blending
+
+Semi-transparent elements (popups, overlays, window shadows) are correctly
+composited using `GL_EXT_shader_framebuffer_fetch`. The shader reads the
+current framebuffer value, decodes it from PQ to linear nits, blends with
+the new element in linear light space, then re-encodes to PQ. This avoids
+the severe darkening that would occur from blending PQ-encoded values directly.
+
+If the extension is unavailable, a fallback path outputs premultiplied PQ values
+and relies on GL blending (visually incorrect for semi-transparent overlays but
+acceptable for fully opaque content).
+
+### Performance
+
+The per-element architecture matches SDR rendering performance:
+- No offscreen texture or extra render pass
+- DRM compositor handles damage tracking natively (only changed elements redraw)
+- Single FBO (the swapchain buffer), no bind/unbind overhead
+- Framebuffer fetch is essentially free (cache read on modern GPUs)
 
 ---
 
@@ -149,6 +174,16 @@ sRGB input
 - Decrease `sdr-color-intensity` (try 0.8–0.9).
 - Some SDR content is already wide-gamut and may not need expansion.
 
+### Colors look wrong (e.g. red appears yellow)
+- This indicates a color matrix issue. Ensure you're running the latest build.
+- The sRGB→BT.2020 matrix must be in column-major order for GLSL.
+
+### Semi-transparent overlays cause black screen
+- Requires `GL_EXT_shader_framebuffer_fetch` GPU support.
+- AMD (Mesa 26+), Intel, and most modern GPUs support this.
+- If unsupported, fully opaque content renders correctly but semi-transparent
+  overlays may appear too dark.
+
 ### HDR content looks dim
 - Verify `max-luminance` matches your display's actual peak brightness.
 - Check your display's OSD for HDR settings.
@@ -159,12 +194,24 @@ sRGB input
 - Try a different `bit-depth` (some GPUs/drivers have issues with `16f`).
 - Check your kernel and driver version (amdgpu needs a patched kernel for full colorspace support).
 
+### Performance is poor with HDR enabled
+- Ensure you're running a release build (`cargo build --release`).
+- The per-element shader architecture should have no measurable overhead vs SDR.
+- If performance is bad, check if `GL_EXT_shader_framebuffer_fetch` is falling
+  back to the non-fetch path (unlikely to cause slowdowns but worth verifying).
+
 ---
 
 ## Display Compatibility
 
 | GPU | Status | Notes |
 |-----|--------|-------|
-| Intel (i915) | ✅ Good | Full colorspace and HDR metadata support |
-| AMD (amdgpu) | ⚠️ Partial | Needs patched kernel for BT.2020 colorspace; HDR metadata works |
-| NVIDIA (nvidia-drm) | ⚠️ Partial | HDR metadata works; colorspace support varies by driver version |
+| AMD (amdgpu/RADV) | ✅ Tested | Mesa 26+, RDNA4 confirmed working. Needs `GL_EXT_shader_framebuffer_fetch` (supported via Zink/radeonsi) |
+| Intel (i915) | ✅ Expected | Full colorspace and HDR metadata support, framebuffer fetch available |
+| NVIDIA (nvidia-drm) | ⚠️ Untested | HDR metadata should work; framebuffer fetch support depends on driver version |
+
+### Requirements
+- GPU with 10-bit output support
+- Display that accepts HDR10 (PQ + BT.2020)
+- `GL_EXT_shader_framebuffer_fetch` for correct semi-transparent overlay rendering
+- DRM atomic modesetting with `Colorspace` and `HDR_OUTPUT_METADATA` properties
