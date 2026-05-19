@@ -1214,6 +1214,11 @@ pub struct HdrOutputConfig {
     /// SDR content brightness in nits (default: 203 per BT.2408).
     #[cfg_attr(feature = "clap", arg(short = 's', long))]
     pub sdr_brightness: Option<f64>,
+    /// SDR color intensity (gamut expansion factor). 0.0 to 2.0, default 1.0.
+    /// Values > 1.0 make SDR colors more vivid by expanding the chroma.
+    /// Values < 1.0 desaturate SDR content.
+    #[cfg_attr(feature = "clap", arg(short = 'g', long))]
+    pub sdr_color_intensity: Option<f64>,
     /// Color space for HDR (bt2020, display-p3, srgb).
     #[cfg_attr(feature = "clap", arg(short = 'c', long))]
     pub colorspace: Option<HdrColorspace>,

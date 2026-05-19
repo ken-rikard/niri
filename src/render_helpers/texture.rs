@@ -106,6 +106,10 @@ impl<T: Texture> TextureBuffer<T> {
     pub fn set_texture_transform(&mut self, transform: Transform) {
         self.transform = transform;
     }
+
+    pub fn increment_commit(&mut self) {
+        self.commit_counter.increment();
+    }
 }
 
 impl<T: Texture> TextureBuffer<T> {

@@ -1768,6 +1768,17 @@ impl State {
             let backdrop_color = Color32F::from(backdrop_color);
 
             if let Some(state) = self.niri.output_state.get_mut(output) {
+                // Update HDR enabled state from config.
+                let new_hdr_enabled = config
+                    .and_then(|c| c.hdr.as_ref())
+                    .map(|h| h.enabled)
+                    .unwrap_or(false);
+                let old_hdr_enabled = state.hdr_enabled;
+                state.hdr_enabled = new_hdr_enabled;
+                if old_hdr_enabled != new_hdr_enabled || new_hdr_enabled {
+                    recolored_outputs.push(output.clone());
+                }
+
                 if state.backdrop_buffer.color() != backdrop_color {
                     state.backdrop_buffer.set_color(backdrop_color);
                     recolored_outputs.push(output.clone());
@@ -1937,6 +1948,7 @@ impl State {
                     max_cll: hdr.max_cll,
                     max_fall: hdr.max_fall,
                     sdr_brightness: hdr.sdr_brightness,
+                    sdr_color_intensity: hdr.sdr_color_intensity,
                     colorspace: hdr.colorspace,
                     bit_depth: hdr.bit_depth,
                 });
