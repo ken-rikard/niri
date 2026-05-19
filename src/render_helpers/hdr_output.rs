@@ -1,8 +1,9 @@
 use smithay::backend::renderer::element::{Element, Id, Kind, RenderElement, UnderlyingStorage};
 use smithay::backend::renderer::gles::{GlesError, GlesFrame, GlesRenderer, GlesTexProgram, GlesTexture, Uniform};
 use smithay::backend::renderer::utils::{CommitCounter, DamageSet, OpaqueRegions};
+use smithay::backend::renderer::Texture as _;
 use smithay::utils::user_data::UserDataMap;
-use smithay::utils::{Buffer, Physical, Rectangle, Scale, Transform};
+use smithay::utils::{Buffer, Physical, Point, Rectangle, Scale, Size, Transform};
 
 use super::renderer::AsGlesFrame as _;
 use super::shaders::Shaders;
@@ -102,33 +103,43 @@ impl RenderElement<GlesRenderer> for HdrOutputRenderElement {
     fn draw(
         &self,
         frame: &mut GlesFrame<'_, '_>,
-        src: Rectangle<f64, Buffer>,
+        _src: Rectangle<f64, Buffer>,
         dst: Rectangle<i32, Physical>,
         damage: &[Rectangle<i32, Physical>],
-        opaque_regions: &[Rectangle<i32, Physical>],
-        cache: Option<&UserDataMap>,
+        _opaque_regions: &[Rectangle<i32, Physical>],
+        _cache: Option<&UserDataMap>,
     ) -> Result<(), GlesError> {
         let Some(program) = &self.program else {
             return Ok(());
         };
+
+        // Get the texture from the inner element.
+        let texture = self.inner.buffer().texture();
 
         let uniforms = vec![
             Uniform::new("u_sdr_brightness_nits", self.sdr_brightness_nits),
             Uniform::new("u_max_nits", self.max_nits),
             Uniform::new("u_sdr_color_intensity", self.sdr_color_intensity),
         ];
-        frame.override_default_tex_program(program.clone(), uniforms);
-        RenderElement::<GlesRenderer>::draw(
-            &self.inner,
-            frame,
+
+        // Use full texture source.
+        let tex_size = texture.size();
+        let src = Rectangle::new(
+            Point::from((0.0f64, 0.0f64)),
+            Size::from((tex_size.w as f64, tex_size.h as f64)),
+        );
+
+        frame.render_texture_from_to(
+            texture,
             src,
             dst,
             damage,
-            opaque_regions,
-            cache,
-        )?;
-        frame.clear_tex_program_override();
-        Ok(())
+            &[],
+            Transform::Normal,
+            1.0,
+            Some(program),
+            &uniforms,
+        )
     }
 
     fn underlying_storage(&self, _renderer: &mut GlesRenderer) -> Option<UnderlyingStorage<'_>> {

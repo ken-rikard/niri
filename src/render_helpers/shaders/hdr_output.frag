@@ -20,15 +20,6 @@ float srgb_to_linear(float c) {
     }
 }
 
-// Linear to sRGB conversion.
-float linear_to_srgb(float c) {
-    if (c <= 0.0031308) {
-        return c * 12.92;
-    } else {
-        return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
-    }
-}
-
 // PQ (ST 2084) OETF: converts linear light in nits to PQ-encoded signal.
 float pq_oetf(float linear_nits) {
     const float m1 = 0.1593017578125;
@@ -39,7 +30,9 @@ float pq_oetf(float linear_nits) {
 
     // Normalize to 10000 nits reference.
     float l = linear_nits / 10000.0;
-    float l_m1 = pow(max(l, 1e-6), m1);
+    // Avoid pow(0, m1) = 0 which gives PQ value from c1^m2 which is > 0.
+    // We use max(l, 0.0) to allow true zero for absolute black.
+    float l_m1 = pow(max(l, 0.0), m1);
     float num = c1 + c2 * l_m1;
     float den = 1.0 + c3 * l_m1;
     return pow(num / max(den, 1e-6), m2);
@@ -59,14 +52,13 @@ vec3 srgb_to_bt2020(vec3 rgb) {
 // At intensity=1.0, colors pass through unchanged.
 // At intensity>1.0, chroma is amplified for more vibrant colors.
 vec3 expand_gamut(vec3 linear_rgb, float intensity) {
-    // Luminance weights for BT.709/sRGB (Rec. 601 luma).
     float luminance = dot(linear_rgb, vec3(0.2126, 0.7152, 0.0722));
     vec3 chroma = linear_rgb - luminance;
     return luminance + chroma * intensity;
 }
 
 void main() {
-    // Sample input texture (sRGB gamma).
+    // Sample input texture (sRGB gamma encoded).
     vec3 srgb = texture2D(tex, v_coords).rgb;
 
     // Convert sRGB to linear.
@@ -77,8 +69,6 @@ void main() {
     );
 
     // Apply gamut expansion (SDR color intensity).
-    // This scales chroma in linear space to make SDR content
-    // more vibrant on wide-gamut HDR displays.
     linear = expand_gamut(linear, u_sdr_color_intensity);
 
     // Scale SDR content to target brightness in nits.
