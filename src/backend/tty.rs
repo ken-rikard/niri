@@ -68,7 +68,7 @@ use crate::frame_clock::FrameClock;
 use crate::niri::{Niri, OutputRenderElements, RedrawState, State};
 use crate::render_helpers::debug::draw_damage;
 use crate::render_helpers::hdr_output::HdrOutputRenderElement;
-use crate::render_helpers::renderer::{AsGlesFrame, AsGlesRenderer};
+use crate::render_helpers::renderer::AsGlesRenderer;
 use crate::render_helpers::texture::TextureRenderElement;
 use crate::render_helpers::{resources, shaders, RenderCtx, RenderTarget};
 use crate::utils::{get_monotonic_time, is_laptop_panel, logical_output, PanelOrientation};
@@ -2211,18 +2211,7 @@ impl Tty {
         );
 
         // Get HDR shader program.
-        let program = {
-            let mut tmp_target = renderer
-                .bind(&mut offscreen_texture)
-                .inspect_err(|err| warn!("error rebinding offscreen texture for HDR shader lookup: {err:?}"))
-                .ok()?;
-            let mut multi_frame = renderer
-                .render(&mut tmp_target, output_size, output_transform)
-                .inspect_err(|err| warn!("error creating frame for HDR shader lookup: {err:?}"))
-                .ok()?;
-            let gles_frame = multi_frame.as_gles_frame();
-            shaders::Shaders::get_from_frame(gles_frame).hdr_output.clone()
-        };
+        let program = shaders::Shaders::get(renderer).hdr_output.clone();
 
         let program = program.inspect(|_| {}).or_else(|| {
             warn!("HDR shader not available, falling back to SDR");
@@ -3642,19 +3631,32 @@ fn set_hdr_metadata(
     info!("Colorspace: handle={:?}, current_value={}", 
           cs_info.handle(), cs_value);
 
-    // Try setting colorspace via legacy set_property first
     let colorspace_value = if enabled { target_colorspace } else { DRM_MODE_COLORIMETRY_DEFAULT };
-    match props.device.set_property(props.connector, cs_info.handle(), colorspace_value) {
-        Ok(()) => info!("Colorspace set to {} via legacy set_property", colorspace_value),
-        Err(e) => warn!("Colorspace legacy set_property failed: {} (raw_os_error={:?})", e, e.raw_os_error()),
-    }
 
     if !enabled {
-        // Just clear HDR_OUTPUT_METADATA via legacy set_property
+        // Clear both properties via atomic commit
+        let mut req = AtomicModeReq::new();
+        req.add_property(
+            props.connector,
+            cs_info.handle(),
+            property::Value::Unknown(DRM_MODE_COLORIMETRY_DEFAULT),
+        );
         if *hdr_value != 0 {
-            match props.device.set_property(props.connector, hdr_info.handle(), 0) {
-                Ok(()) => info!("HDR_OUTPUT_METADATA cleared via legacy set_property"),
-                Err(e) => warn!("HDR_OUTPUT_METADATA clear failed: {} (raw_os_error={:?})", e, e.raw_os_error()),
+            req.add_property(
+                props.connector,
+                hdr_info.handle(),
+                property::Value::Blob(0),
+            );
+        }
+        match props.device.atomic_commit(AtomicCommitFlags::ALLOW_MODESET, req) {
+            Ok(()) => info!("HDR disabled via atomic commit"),
+            Err(e) => {
+                warn!("HDR disable atomic commit failed: {} (raw_os_error={:?})", e, e.raw_os_error());
+                // Try legacy as fallback
+                let _ = props.device.set_property(props.connector, cs_info.handle(), DRM_MODE_COLORIMETRY_DEFAULT);
+                if *hdr_value != 0 {
+                    let _ = props.device.set_property(props.connector, hdr_info.handle(), 0);
+                }
             }
         }
         return Ok(());
@@ -3670,31 +3672,43 @@ fn set_hdr_metadata(
     .context("error creating HDR metadata blob")?;
     info!("HDR blob created: id={}, size={} bytes", blob.blob_id, metadata_bytes.len());
 
-    // Try setting HDR blob via legacy set_property first
-    match props.device.set_property(props.connector, hdr_info.handle(), u64::from(blob.blob_id)) {
-        Ok(()) => {
-            info!("HDR_OUTPUT_METADATA set via legacy set_property");
-            return Ok(());
-        }
-        Err(e) => warn!("HDR_OUTPUT_METADATA legacy set_property failed: {} (raw_os_error={:?})", e, e.raw_os_error()),
-    }
-
-    // Fall back to atomic commit
-    info!("falling back to atomic commit for HDR");
+    // Set BOTH HDR_OUTPUT_METADATA and Colorspace in a single atomic commit.
+    // This is critical: the display needs both properties set together to enter PQ/HDR mode.
     let mut req = AtomicModeReq::new();
     req.add_property(
         props.connector,
         hdr_info.handle(),
         property::Value::Blob(u64::from(blob.blob_id)),
     );
+    req.add_property(
+        props.connector,
+        cs_info.handle(),
+        property::Value::Unknown(colorspace_value),
+    );
 
-    props
-        .device
-        .atomic_commit(AtomicCommitFlags::ALLOW_MODESET, req)
-        .map_err(|e| {
+    match props.device.atomic_commit(AtomicCommitFlags::ALLOW_MODESET, req) {
+        Ok(()) => {
+            info!("HDR enabled via atomic commit (Colorspace={}, blob={})", colorspace_value, blob.blob_id);
+            return Ok(());
+        }
+        Err(e) => {
             warn!("HDR atomic commit failed: {} (raw_os_error={:?})", e, e.raw_os_error());
-            anyhow::anyhow!("error doing HDR atomic commit: {} (raw_os_error={:?})", e, e.raw_os_error())
-        })?;
+        }
+    }
+
+    // Fall back to legacy set_property for both
+    info!("falling back to legacy set_property for HDR");
+    match props.device.set_property(props.connector, cs_info.handle(), colorspace_value) {
+        Ok(()) => info!("Colorspace set to {} via legacy set_property", colorspace_value),
+        Err(e) => warn!("Colorspace legacy set_property failed: {} (raw_os_error={:?})", e, e.raw_os_error()),
+    }
+    match props.device.set_property(props.connector, hdr_info.handle(), u64::from(blob.blob_id)) {
+        Ok(()) => info!("HDR_OUTPUT_METADATA set via legacy set_property"),
+        Err(e) => {
+            warn!("HDR_OUTPUT_METADATA legacy set_property failed: {} (raw_os_error={:?})", e, e.raw_os_error());
+            return Err(anyhow::anyhow!("failed to set HDR properties via both atomic and legacy paths"));
+        }
+    }
 
     Ok(())
 }

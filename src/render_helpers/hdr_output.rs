@@ -113,7 +113,6 @@ impl RenderElement<GlesRenderer> for HdrOutputRenderElement {
             return Ok(());
         };
 
-        // Get the texture from the inner element.
         let texture = self.inner.buffer().texture();
 
         let uniforms = vec![
@@ -122,7 +121,6 @@ impl RenderElement<GlesRenderer> for HdrOutputRenderElement {
             Uniform::new("u_sdr_color_intensity", self.sdr_color_intensity),
         ];
 
-        // Use full texture source.
         let tex_size = texture.size();
         let src = Rectangle::new(
             Point::from((0.0f64, 0.0f64)),

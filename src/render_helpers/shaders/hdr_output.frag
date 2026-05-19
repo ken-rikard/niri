@@ -29,7 +29,7 @@ float pq_oetf(float linear_nits) {
     const float c3 = 18.6875;
 
     float l = linear_nits / 10000.0;
-    float l_m1 = pow(max(l, 0.0), m1);
+    float l_m1 = pow(max(l, 1e-6), m1);
     float num = c1 + c2 * l_m1;
     float den = 1.0 + c3 * l_m1;
     return pow(num / max(den, 1e-6), m2);
@@ -66,9 +66,8 @@ void main() {
     // Apply gamut expansion (SDR color intensity).
     linear = expand_gamut(linear, u_sdr_color_intensity);
 
-    // Scale SDR content to target brightness in nits.
-    float sdr_scale = u_sdr_brightness_nits / max(u_max_nits, 1.0);
-    linear *= sdr_scale;
+    // Scale to absolute nits (SDR white = sdr_brightness_nits).
+    linear *= u_sdr_brightness_nits;
 
     // Convert to BT.2020 primaries.
     linear = srgb_to_bt2020(linear);
