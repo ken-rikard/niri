@@ -409,6 +409,8 @@ struct Surface {
 
     /// Tracy frame that goes from vblank to vblank.
     vblank_frame: Option<tracy_client::Frame>,
+    /// Previous HDR passthrough state (for logging transitions).
+    was_passthrough: bool,
     /// Frame name for the VBlank frame.
     vblank_frame_name: tracy_client::FrameName,
     /// Plot name for the time since presentation plot.
@@ -1619,6 +1621,7 @@ impl Tty {
             gamma_props,
             pending_gamma_change: None,
             vblank_frame: None,
+            was_passthrough: false,
             vblank_frame_name,
             time_since_presentation_plot_name,
             presentation_misprediction_plot_name,
@@ -1997,6 +2000,7 @@ impl Tty {
                 surface.vblank_frame.as_ref(),
                 &self.config.borrow().debug,
                 &self.config.borrow().outputs,
+                &mut surface.was_passthrough,
             ) {
                 return hdr_result;
             }
@@ -2122,6 +2126,7 @@ impl Tty {
         _vblank_frame: Option<&tracy_client::Frame>,
         debug: &niri_config::Debug,
         outputs_config: &niri_config::Outputs,
+        was_passthrough: &mut bool,
     ) -> Option<RenderResult> {
         use crate::render_helpers::hdr_output::{HdrTreatment, HdrWrappedElement};
 
@@ -2193,6 +2198,14 @@ impl Tty {
                 }
             }
         }
+
+        // Log passthrough state transitions.
+        if force_output_passthrough && !*was_passthrough {
+            warn!("HDR passthrough: activated for output {}", name.connector);
+        } else if !force_output_passthrough && *was_passthrough {
+            warn!("HDR passthrough: deactivated for output {}", name.connector);
+        }
+        *was_passthrough = force_output_passthrough;
 
         // Wrap each element with the HDR shader - no offscreen texture needed.
         // The DRM compositor handles all damage tracking natively.
