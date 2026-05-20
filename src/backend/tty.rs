@@ -2245,7 +2245,6 @@ impl Tty {
             warn!("HDR passthrough: deactivated for output {}", name.connector);
         }
         *was_passthrough = any_passthrough;
-
         // Get ICC profile matrix if available.
         let icc_matrix = niri.output_state.get(output)
             .and_then(|state| state.icc_profile.as_ref())
