@@ -2162,20 +2162,45 @@ impl Tty {
         });
 
         // Get passthrough app list from config.
-        let _passthrough_apps: Vec<String> = hdr_cfg
+        let passthrough_apps: Vec<String> = hdr_cfg
             .as_ref()
             .map(|h| h.passthrough_app.clone())
             .unwrap_or_default();
+
+        // Check if any visible window on this output is an HDR-native app.
+        // If so, use passthrough mode for all elements on this output.
+        // This is coarse-grained but handles the common case of a single
+        // HDR-native app (mpv, games, etc.) either fullscreen or floating.
+        let mut force_output_passthrough = false;
+        if !passthrough_apps.is_empty() {
+            for mapped in niri.layout.windows_for_output(output) {
+                let app_id = crate::utils::with_toplevel_role(mapped.toplevel(), |role| {
+                    role.app_id.clone().unwrap_or_default()
+                });
+                let is_hdr_app = passthrough_apps.iter().any(|pat| {
+                    // Match exact or with .desktop suffix.
+                    app_id == *pat || app_id == format!("{pat}.desktop")
+                });
+                if is_hdr_app {
+                    force_output_passthrough = true;
+                    break;
+                }
+            }
+        }
 
         // Wrap each element with the HDR shader - no offscreen texture needed.
         // The DRM compositor handles all damage tracking natively.
         let hdr_elements: Vec<HdrWrappedElement<'a>> = elements
             .iter()
             .map(|elem| {
-                // TODO: Per-element HDR passthrough detection.
-                // For now, all SDR content gets converted. Native HDR apps
-                // can force passthrough mode via IPC or config.
-                let treatment = HdrTreatment::Convert;
+                // If a fullscreen HDR app is visible, put the entire output in
+                // passthrough mode. This avoids double-conversion of native HDR
+                // content. The tradeoff is that SDR overlays may look wrong.
+                let treatment = if force_output_passthrough {
+                    HdrTreatment::Passthrough
+                } else {
+                    HdrTreatment::Convert
+                };
 
                 HdrWrappedElement::new(
                     elem,
