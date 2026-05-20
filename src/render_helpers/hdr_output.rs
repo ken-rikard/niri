@@ -10,13 +10,24 @@ use super::texture::TextureRenderElement;
 use crate::backend::tty::{TtyFrame, TtyRenderer, TtyRendererError};
 use crate::niri::OutputRenderElements;
 
+/// Which HDR treatment to apply to an element.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HdrTreatment {
+    /// Apply SDR->HDR conversion (sRGB to PQ, gamut expansion, etc.)
+    Convert,
+    /// Pass content through as-is (content is already HDR-native)
+    Passthrough,
+}
+
 /// Wraps an OutputRenderElements to apply the HDR shader when drawn.
 /// This eliminates the offscreen texture by applying tone mapping per-element
 /// directly during the DRM compositor's single render pass.
 #[derive(Debug)]
 pub struct HdrWrappedElement<'a> {
     inner: &'a OutputRenderElements<TtyRenderer<'a>>,
-    program: GlesTexProgram,
+    conversion_program: GlesTexProgram,
+    passthrough_program: GlesTexProgram,
+    treatment: HdrTreatment,
     sdr_brightness_nits: f32,
     max_nits: f32,
     sdr_color_intensity: f32,
@@ -25,21 +36,25 @@ pub struct HdrWrappedElement<'a> {
 impl<'a> HdrWrappedElement<'a> {
     pub fn new(
         inner: &'a OutputRenderElements<TtyRenderer<'a>>,
-        program: GlesTexProgram,
+        conversion_program: GlesTexProgram,
+        passthrough_program: GlesTexProgram,
+        treatment: HdrTreatment,
         sdr_brightness_nits: f32,
         max_nits: f32,
         sdr_color_intensity: f32,
     ) -> Self {
         Self {
             inner,
-            program,
+            conversion_program,
+            passthrough_program,
+            treatment,
             sdr_brightness_nits,
             max_nits,
             sdr_color_intensity,
         }
     }
 
-    fn uniforms(&self) -> Vec<Uniform<'static>> {
+    fn conversion_uniforms(&self) -> Vec<Uniform<'static>> {
         vec![
             Uniform::new("u_sdr_brightness_nits", self.sdr_brightness_nits),
             Uniform::new("u_max_nits", self.max_nits),
@@ -100,10 +115,19 @@ impl<'render> RenderElement<TtyRenderer<'render>> for HdrWrappedElement<'render>
         opaque_regions: &[Rectangle<i32, Physical>],
         cache: Option<&UserDataMap>,
     ) -> Result<(), TtyRendererError<'render>> {
-        // Set HDR shader override before drawing.
+        let program = match self.treatment {
+            HdrTreatment::Convert => self.conversion_program.clone(),
+            HdrTreatment::Passthrough => self.passthrough_program.clone(),
+        };
+        let uniforms = match self.treatment {
+            HdrTreatment::Convert => self.conversion_uniforms(),
+            HdrTreatment::Passthrough => vec![],
+        };
+
+        // Set shader override before drawing.
         frame
             .as_gles_frame()
-            .override_default_tex_program(self.program.clone(), self.uniforms());
+            .override_default_tex_program(program, uniforms);
 
         // Draw the inner element (its TtyRenderer draw will use the overridden shader).
         let result = RenderElement::<TtyRenderer<'render>>::draw(

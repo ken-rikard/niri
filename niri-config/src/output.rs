@@ -101,6 +101,11 @@ pub struct HdrOutput {
     /// Values < 1.0 desaturate SDR content.
     #[knuffel(property)]
     pub sdr_color_intensity: Option<f64>,
+    /// List of app-ids or window titles that output native HDR content.
+    /// These apps will bypass SDR->HDR conversion and their content will be
+    /// passed through directly as PQ-encoded BT.2020.
+    #[knuffel(child, unwrap(arguments))]
+    pub passthrough_app: Vec<String>,
     #[knuffel(property, str)]
     pub colorspace: Option<HdrColorspace>,
     #[knuffel(property, str)]

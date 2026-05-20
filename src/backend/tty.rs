@@ -2123,7 +2123,7 @@ impl Tty {
         debug: &niri_config::Debug,
         outputs_config: &niri_config::Outputs,
     ) -> Option<RenderResult> {
-        use crate::render_helpers::hdr_output::HdrWrappedElement;
+        use crate::render_helpers::hdr_output::{HdrTreatment, HdrWrappedElement};
 
         // Initialize shaders for this renderer.
         shaders::init(renderer.as_gles_renderer());
@@ -2148,21 +2148,40 @@ impl Tty {
             .map(|v| v.clamp(0.0, 2.0) as f32)
             .unwrap_or(1.0);
 
-        // Get HDR shader program.
-        let program = shaders::Shaders::get(renderer).hdr_output.clone();
-        let program = program.or_else(|| {
-            warn!("HDR shader not available, falling back to SDR");
+        // Get HDR shader programs.
+        let shaders = shaders::Shaders::get(renderer);
+        let conversion_program = shaders.hdr_output.clone();
+        let passthrough_program = shaders.hdr_passthrough.clone();
+        let conversion_program = conversion_program.or_else(|| {
+            warn!("HDR conversion shader not available, falling back to SDR");
             None
         })?;
+        let passthrough_program = passthrough_program.or_else(|| {
+            warn!("HDR passthrough shader not available, using conversion for all elements");
+            None
+        });
+
+        // Get passthrough app list from config.
+        let _passthrough_apps: Vec<String> = hdr_cfg
+            .as_ref()
+            .map(|h| h.passthrough_app.clone())
+            .unwrap_or_default();
 
         // Wrap each element with the HDR shader - no offscreen texture needed.
         // The DRM compositor handles all damage tracking natively.
         let hdr_elements: Vec<HdrWrappedElement<'a>> = elements
             .iter()
             .map(|elem| {
+                // TODO: Per-element HDR passthrough detection.
+                // For now, all SDR content gets converted. Native HDR apps
+                // can force passthrough mode via IPC or config.
+                let treatment = HdrTreatment::Convert;
+
                 HdrWrappedElement::new(
                     elem,
-                    program.clone(),
+                    conversion_program.clone(),
+                    passthrough_program.clone().unwrap_or_else(|| conversion_program.clone()),
+                    treatment,
                     sdr_brightness_nits,
                     max_nits,
                     sdr_color_intensity,
