@@ -2164,7 +2164,13 @@ impl Tty {
         // Get passthrough app list from config.
         let passthrough_apps: Vec<String> = hdr_cfg
             .as_ref()
-            .map(|h| h.passthrough_app.clone())
+            .and_then(|h| h.passthrough_apps.as_ref())
+            .map(|s| {
+                s.split(',')
+                    .map(|app| app.trim().to_string())
+                    .filter(|app| !app.is_empty())
+                    .collect()
+            })
             .unwrap_or_default();
 
         // Check if any visible window on this output is an HDR-native app.
