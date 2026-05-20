@@ -2152,6 +2152,15 @@ impl Tty {
             .and_then(|h| h.sdr_color_intensity)
             .map(|v| v.clamp(0.0, 2.0) as f32)
             .unwrap_or(1.0);
+        let gamut_mapping_mode: i32 = hdr_cfg
+            .as_ref()
+            .and_then(|h| h.gamut_mapping)
+            .map(|mode| match mode {
+                niri_ipc::GamutMappingMode::Desaturate => 0,
+                niri_ipc::GamutMappingMode::Clip => 1,
+                niri_ipc::GamutMappingMode::Relative => 2,
+            })
+            .unwrap_or(0);
 
         // Get HDR shader programs.
         let shaders = shaders::Shaders::get(renderer);
@@ -2229,22 +2238,23 @@ impl Tty {
                     sdr_brightness_nits,
                     max_nits,
                     sdr_color_intensity,
+                    gamut_mapping_mode,
                 )
             })
             .collect();
 
         // Use same flags as SDR path but disable direct scanout
         // (can't scan out raw sRGB buffers on a PQ display).
+        // Also disable the cursor plane — it bypasses the HDR shader and renders
+        // in SDR, causing a visible artifact around the cursor.
         let flags = {
             let mut flags = FrameFlags::empty();
             if debug.enable_overlay_planes {
                 flags.insert(FrameFlags::ALLOW_OVERLAY_PLANE_SCANOUT);
             }
-            if debug.disable_cursor_plane {
-                flags.remove(FrameFlags::ALLOW_CURSOR_PLANE_SCANOUT);
-            } else {
-                flags.insert(FrameFlags::ALLOW_CURSOR_PLANE_SCANOUT);
-            }
+            // Always disable cursor plane in HDR path — cursor must be composited
+            // through the HDR shader to avoid SDR artifact.
+            flags.remove(FrameFlags::ALLOW_CURSOR_PLANE_SCANOUT);
             flags
         };
 
@@ -2839,6 +2849,27 @@ impl Tty {
         for (node, connector, crtc, _name) in to_connect {
             if let Err(err) = self.connector_connected(niri, node, connector, crtc) {
                 warn!("error connecting connector: {err:?}");
+            }
+        }
+
+        // Reset damage tracking for HDR-enabled outputs so that shader parameter
+        // changes (e.g. sdr_color_intensity) trigger a full redraw.
+        for (&node, device) in &mut self.devices {
+            for (&crtc, surface) in device.surfaces.iter_mut() {
+                let output = niri
+                    .global_space
+                    .outputs()
+                    .find(|output| {
+                        let tty_state: &TtyOutputState = output.user_data().get().unwrap();
+                        tty_state.node == node && tty_state.crtc == crtc
+                    });
+                if let Some(output) = output {
+                    if let Some(state) = niri.output_state.get(output) {
+                        if state.hdr_enabled {
+                            surface.compositor.reset_buffer_ages();
+                        }
+                    }
+                }
             }
         }
 

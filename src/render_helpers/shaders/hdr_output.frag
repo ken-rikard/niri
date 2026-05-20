@@ -19,6 +19,7 @@ uniform float alpha;
 uniform float u_sdr_brightness_nits;
 uniform float u_max_nits;
 uniform float u_sdr_color_intensity;
+uniform int u_gamut_mapping_mode;  // 0=desaturate, 1=clip, 2=relative
 
 #if defined(DEBUG_FLAGS)
 uniform float tint;
@@ -71,10 +72,39 @@ vec3 srgb_to_bt2020(vec3 rgb) {
 }
 
 // Gamut expansion: scales chroma in linear space.
+// At intensity=1.0, colors pass through unchanged.
+// At intensity>1.0, chroma is amplified for more vibrant colors.
 vec3 expand_gamut(vec3 linear_rgb, float intensity) {
     float luminance = dot(linear_rgb, vec3(0.2126, 0.7152, 0.0722));
     vec3 chroma = linear_rgb - luminance;
     return luminance + chroma * intensity;
+}
+
+// Gamut mapping: handles out-of-gamut colors after BT.2020 conversion.
+vec3 gamut_map(vec3 bt2020, int mode) {
+    if (mode == 0) {
+        // Desaturate: reduce saturation for out-of-gamut colors (KWin default).
+        float lum = dot(bt2020, vec3(0.2627, 0.6780, 0.0593));
+        vec3 chroma = bt2020 - lum;
+        float max_chroma = max(max(abs(chroma.r), abs(chroma.g)), abs(chroma.b));
+        if (max_chroma > 0.5) {
+            float scale = 0.5 / max_chroma;
+            return lum + chroma * scale;
+        }
+        return bt2020;
+    } else if (mode == 1) {
+        // Clip: simple clamping to [0, 1].
+        return clamp(bt2020, 0.0, 1.0);
+    } else if (mode == 2) {
+        // Relative: preserve color relationships while compressing gamut.
+        // Scale all channels proportionally if any channel exceeds 1.0.
+        float max_channel = max(max(bt2020.r, bt2020.g), bt2020.b);
+        if (max_channel > 1.0) {
+            return bt2020 / max_channel;
+        }
+        return bt2020;
+    }
+    return bt2020;
 }
 
 void main() {
@@ -91,37 +121,42 @@ void main() {
     vec3 src_srgb = (texel.a > 0.001) ? texel.rgb / texel.a : vec3(0.0);
 #endif
 
-    // Convert source sRGB to linear BT.2020 nits.
+    // Convert source sRGB to linear BT.2020 (normalized [0,1]).
     vec3 src_linear = vec3(
         srgb_to_linear(src_srgb.r),
         srgb_to_linear(src_srgb.g),
         srgb_to_linear(src_srgb.b)
     );
     src_linear = expand_gamut(src_linear, u_sdr_color_intensity);
-    src_linear *= u_sdr_brightness_nits;
     src_linear = srgb_to_bt2020(src_linear);
+    src_linear = gamut_map(src_linear, u_gamut_mapping_mode);
+
+    // Scale to nits AFTER gamut mapping (which expects [0,1] values).
+    src_linear *= u_sdr_brightness_nits;
 
 #ifdef HAS_FRAMEBUFFER_FETCH
-    // Read current framebuffer value (PQ encoded) and decode to linear nits.
-    vec4 fb = gl_LastFragColor;
+    // Decode the existing framebuffer (PQ-encoded) and blend in linear light.
+    vec3 fb_pq = gl_LastFragColor.rgb;
+    float fb_alpha = gl_LastFragColor.a;
+
+    // Decode PQ to linear nits.
     vec3 fb_linear = vec3(
-        pq_eotf(fb.r),
-        pq_eotf(fb.g),
-        pq_eotf(fb.b)
+        pq_eotf(fb_pq.r),
+        pq_eotf(fb_pq.g),
+        pq_eotf(fb_pq.b)
     );
 
-    // Blend in linear light space (physically correct).
-    vec3 result_linear = src_linear * src_alpha + fb_linear * (1.0 - src_alpha);
+    // Alpha blend in linear light.
+    vec3 blended = fb_linear * (1.0 - src_alpha) + src_linear * src_alpha;
 
     // Encode back to PQ.
-    vec3 result_pq = vec3(
-        pq_oetf(result_linear.r),
-        pq_oetf(result_linear.g),
-        pq_oetf(result_linear.b)
+    vec3 out_pq = vec3(
+        pq_oetf(blended.r),
+        pq_oetf(blended.g),
+        pq_oetf(blended.b)
     );
 
-    // Output with alpha=1.0 so GL blending becomes a no-op.
-    gl_FragColor = vec4(result_pq, 1.0);
+    gl_FragColor = vec4(out_pq, max(fb_alpha, src_alpha));
 #else
     // Fallback: simple PQ output (blending in PQ space - incorrect for
     // semi-transparent elements but works for opaque content).
@@ -130,7 +165,8 @@ void main() {
         pq_oetf(src_linear.g),
         pq_oetf(src_linear.b)
     );
-    gl_FragColor = vec4(pq * src_alpha, src_alpha);
+
+    gl_FragColor = vec4(pq, src_alpha);
 #endif
 
 #if defined(DEBUG_FLAGS)

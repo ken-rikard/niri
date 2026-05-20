@@ -1223,6 +1223,9 @@ pub struct HdrOutputConfig {
     /// These apps will bypass SDR->HDR conversion.
     #[cfg_attr(feature = "clap", arg(short = 'p', long))]
     pub passthrough_apps: Option<Vec<String>>,
+    /// Gamut mapping mode for handling out-of-gamut colors (desaturate, clip, relative).
+    #[cfg_attr(feature = "clap", arg(short = 'm', long))]
+    pub gamut_mapping: Option<GamutMappingMode>,
     /// Color space for HDR (bt2020, display-p3, srgb).
     #[cfg_attr(feature = "clap", arg(short = 'c', long))]
     pub colorspace: Option<HdrColorspace>,
@@ -1252,6 +1255,31 @@ impl std::str::FromStr for HdrColorspace {
             "display-p3" => Ok(Self::DisplayP3),
             "bt2020" => Ok(Self::Bt2020),
             _ => Err(format!("invalid color space: {s}")),
+        }
+    }
+}
+
+/// Gamut mapping mode for handling out-of-gamut colors in HDR output.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub enum GamutMappingMode {
+    /// Reduce saturation for out-of-gamut colors (KWin default).
+    Desaturate,
+    /// Simple clamping to [0, 1].
+    Clip,
+    /// Preserve color relationships while compressing gamut.
+    Relative,
+}
+
+impl std::str::FromStr for GamutMappingMode {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "desaturate" => Ok(Self::Desaturate),
+            "clip" => Ok(Self::Clip),
+            "relative" => Ok(Self::Relative),
+            _ => Err(format!("invalid gamut mapping mode: {s}")),
         }
     }
 }

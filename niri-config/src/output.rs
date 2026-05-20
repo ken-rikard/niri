@@ -6,7 +6,7 @@ use knuffel::errors::DecodeError;
 use knuffel::traits::ErrorSpan;
 use knuffel::Decode;
 use niri_ipc::{
-    ConfiguredMode, HdrBitDepth, HdrColorspace, HSyncPolarity, Transform, VSyncPolarity,
+    ConfiguredMode, GamutMappingMode, HdrBitDepth, HdrColorspace, HSyncPolarity, Transform, VSyncPolarity,
 };
 
 use crate::gestures::HotCorners;
@@ -106,6 +106,12 @@ pub struct HdrOutput {
     /// Example: passthrough-apps="mpv,kodi,vlc"
     #[knuffel(property)]
     pub passthrough_apps: Option<String>,
+    /// Gamut mapping mode for handling out-of-gamut colors after BT.2020 conversion.
+    /// - "desaturate": reduce saturation for out-of-gamut colors (default, KWin behavior)
+    /// - "clip": simple clamping to [0, 1]
+    /// - "relative": preserve color relationships while compressing gamut
+    #[knuffel(property, str)]
+    pub gamut_mapping: Option<GamutMappingMode>,
     #[knuffel(property, str)]
     pub colorspace: Option<HdrColorspace>,
     #[knuffel(property, str)]

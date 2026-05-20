@@ -55,9 +55,13 @@ The HDR rendering uses a **per-element shader override** architecture:
    - Eliminates offscreen texture — DRM compositor handles damage tracking natively
 
 4. **Key bugs fixed**
-   - sRGB→BT.2020 matrix was transposed (column-major vs row-major) → caused yellow color shift
-   - Alpha blending in PQ space caused black screen with overlays → framebuffer fetch fix
-   - Performance: eliminated two-pass offscreen architecture → single-pass per-element
+    - sRGB→BT.2020 matrix was transposed (column-major vs row-major) → caused yellow color shift
+    - Alpha blending in PQ space caused black screen with overlays → framebuffer fetch fix
+    - Performance: eliminated two-pass offscreen architecture → single-pass per-element
+    - IPC config changes didn't trigger redraw → added `resized_outputs.push()` + `reset_buffer_ages()` in config change path
+
+5. **Known issues**
+    - [ ] **Cursor plane artifact** — small transparent square around mouse pointer persists even with `ALLOW_CURSOR_PLANE_SCANOUT` removed. Cursor elements are rendered as `Kind::Cursor` but still bypass the HDR shader via some other path (likely direct scanout or separate composition). Needs investigation.
 
 ---
 
@@ -176,7 +180,8 @@ output "HDMI-A-1" {
 
 **Priority:** 🟡 MEDIUM  
 **Impact:** Prevents oversaturation of wide-gamut SDR content  
-**Effort:** ~2-3 days
+**Effort:** ~2-3 days  
+**Status:** ✅ Implemented, cleanup in progress
 
 ### 4.1 Gamut Mapping Modes
 
@@ -190,36 +195,23 @@ output "HDMI-A-1" {
 }
 ```
 
-- Implement desaturate mode (KWin default)
-- Implement clip mode (simple clamping)
-- Implement relative mode (preserve relationships)
+- ✅ Implement desaturate mode (KWin default)
+- ✅ Implement clip mode (simple clamping)
+- ✅ Implement relative mode (preserve relationships)
+- ✅ IPC support: `niri msg output HDMI-A-1 hdr true --gamut-mapping desaturate`
 
 ### 4.2 Shader Implementation
 
 **File:** `src/render_helpers/shaders/hdr_output.frag`
 
-Add gamut mapping after BT.2020 conversion:
+- ✅ `gamut_map()` function with 3 modes
+- ✅ Uniform `u_gamut_mapping_mode` registered in `shaders/mod.rs`
+- ✅ Pipeline order: `expand_gamut` → `srgb_to_bt2020` → `gamut_map` → scale to nits
+- ✅ Framebuffer fetch for correct alpha blending in linear light
 
-```glsl
-uniform int u_gamut_mapping_mode;  // 0=desaturate, 1=clip, 2=relative
+### Known Issues
 
-vec3 gamut_map_bt2020(vec3 bt2020, int mode) {
-    if (mode == 0) {
-        // Desaturate: reduce saturation for out-of-gamut colors
-        float lum = dot(bt2020, vec3(0.2627, 0.6780, 0.0593));
-        vec3 chroma = bt2020 - lum;
-        float max_chroma = max(max(abs(chroma.r), abs(chroma.g)), abs(chroma.b));
-        if (max_chroma > 0.5) {
-            float scale = 0.5 / max_chroma;
-            return lum + chroma * scale;
-        }
-    } else if (mode == 1) {
-        // Clip: simple clamping
-        return clamp(bt2020, 0.0, 1.0);
-    }
-    return bt2020;
-}
-```
+- [ ] **Cursor plane artifact** — small transparent square around mouse pointer persists even with `ALLOW_CURSOR_PLANE_SCANOUT` removed. Cursor elements are rendered as `Kind::Cursor` but still bypass the HDR shader via some other path (likely direct scanout or separate composition). Needs investigation.
 
 ---
 
@@ -374,7 +366,7 @@ output "HDMI-A-1" {
 | 1 | - | `hdr_output.frag`, `hdr_output.rs`, `tty.rs`, `output.rs`, `lib.rs` |
 | 2 | - | `color_management.rs`, `mod.rs` (handlers), `tty.rs` |
 | 3 | `icc.rs`, `icc_profile.frag` | `output.rs`, `lib.rs`, `mod.rs`, `tty.rs` |
-| 4 | - | `hdr_output.frag`, `output.rs`, `lib.rs` |
+| 4 | - | `hdr_output.frag`, `hdr_output.rs`, `tty.rs`, `niri.rs`, `output.rs`, `lib.rs`, `shaders/mod.rs` |
 | 5 | - | `tty.rs` |
 | 6 | - | `output.rs`, `lib.rs`, `tty.rs` |
 | 7 | - | `tty.rs` |
@@ -432,7 +424,7 @@ Previous architectures tried and rejected:
 | `feature/hdr-support` | `bae9fb7c` (squashed Phase 1) | Stable integration branch — always contains clean, logical milestones |
 | `feature/hdr-sdr-intensity` | `6c2ba2cd` (original 9 commits) | Development branch — full trial-and-error history preserved |
 | `feature/hdr-color-aware` | `bae9fb7c` | Phase 2: Per-surface color awareness (ready to start) |
-| `feature/hdr-gamut-mapping` | `bae9fb7c` | Phase 4: Gamut mapping (ready to start) |
+| `feature/hdr-gamut-mapping` | `1bb9ef25` (Phase 4 base) + debug fixes | Phase 4: Gamut mapping (✅ implemented, cleanup in progress) |
 | `feature/hdr-icc-profiles` | `bae9fb7c` | Phase 3: ICC profile support (ready to start) |
 | `feature/hdr-dynamic-meta` | `bae9fb7c` | Phase 5: Dynamic metadata (ready to start) |
 | `feature/hdr-hlg` | `bae9fb7c` | Phase 6: HLG support (ready to start) |

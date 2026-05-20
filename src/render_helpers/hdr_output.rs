@@ -31,6 +31,7 @@ pub struct HdrWrappedElement<'a> {
     sdr_brightness_nits: f32,
     max_nits: f32,
     sdr_color_intensity: f32,
+    gamut_mapping_mode: i32,
 }
 
 impl<'a> HdrWrappedElement<'a> {
@@ -42,6 +43,7 @@ impl<'a> HdrWrappedElement<'a> {
         sdr_brightness_nits: f32,
         max_nits: f32,
         sdr_color_intensity: f32,
+        gamut_mapping_mode: i32,
     ) -> Self {
         Self {
             inner,
@@ -51,6 +53,7 @@ impl<'a> HdrWrappedElement<'a> {
             sdr_brightness_nits,
             max_nits,
             sdr_color_intensity,
+            gamut_mapping_mode,
         }
     }
 
@@ -59,6 +62,7 @@ impl<'a> HdrWrappedElement<'a> {
             Uniform::new("u_sdr_brightness_nits", self.sdr_brightness_nits),
             Uniform::new("u_max_nits", self.max_nits),
             Uniform::new("u_sdr_color_intensity", self.sdr_color_intensity),
+            Uniform::new("u_gamut_mapping_mode", self.gamut_mapping_mode),
         ]
     }
 }
@@ -115,13 +119,17 @@ impl<'render> RenderElement<TtyRenderer<'render>> for HdrWrappedElement<'render>
         opaque_regions: &[Rectangle<i32, Physical>],
         cache: Option<&UserDataMap>,
     ) -> Result<(), TtyRendererError<'render>> {
-        let program = match self.treatment {
-            HdrTreatment::Convert => self.conversion_program.clone(),
-            HdrTreatment::Passthrough => self.passthrough_program.clone(),
-        };
-        let uniforms = match self.treatment {
-            HdrTreatment::Convert => self.conversion_uniforms(),
-            HdrTreatment::Passthrough => vec![],
+        let (program, uniforms, _treatment_name) = match self.treatment {
+            HdrTreatment::Convert => (
+                self.conversion_program.clone(),
+                self.conversion_uniforms(),
+                "convert",
+            ),
+            HdrTreatment::Passthrough => (
+                self.passthrough_program.clone(),
+                vec![],
+                "passthrough",
+            ),
         };
 
         // Set shader override before drawing.
@@ -148,9 +156,13 @@ impl<'render> RenderElement<TtyRenderer<'render>> for HdrWrappedElement<'render>
 
     fn underlying_storage(
         &self,
-        renderer: &mut TtyRenderer<'render>,
+        _renderer: &mut TtyRenderer<'render>,
     ) -> Option<UnderlyingStorage<'_>> {
-        self.inner.underlying_storage(renderer)
+        // Return None to prevent DRM direct scanout.
+        // The DRM compositor must call draw() so our HDR shader override
+        // is applied. Without this, it would bypass our shader entirely
+        // and display raw SRGB buffers directly on the HDR output.
+        None
     }
 }
 

@@ -1777,6 +1777,9 @@ impl State {
                 state.hdr_enabled = new_hdr_enabled;
                 if old_hdr_enabled != new_hdr_enabled || new_hdr_enabled {
                     recolored_outputs.push(output.clone());
+                    // Force a full redraw when HDR config changes, since the damage tracker
+                    // won't detect shader parameter changes as damage.
+                    resized_outputs.push(output.clone());
                 }
 
                 if state.backdrop_buffer.color() != backdrop_color {
@@ -1835,7 +1838,8 @@ impl State {
         // output, then our new section won't do anything.
         let temp;
         let match_name = if let Some(output) = self.niri.output_by_name_match(name) {
-            output.user_data().get::<OutputName>().unwrap()
+            temp = output.user_data().get::<OutputName>().unwrap().clone();
+            &temp
         } else if let Some(output_name) = self
             .backend
             .tty_checked()
@@ -1844,7 +1848,6 @@ impl State {
             temp = output_name;
             &temp
         } else {
-            // Even if name is "make model serial", matching will work fine this way.
             temp = OutputName {
                 connector: name.to_owned(),
                 make: None,
@@ -1941,18 +1944,26 @@ impl State {
                 }
             }
             niri_ipc::OutputAction::Hdr { hdr } => {
-                config.hdr = Some(niri_config::HdrOutput {
+                // Merge with existing HDR config rather than replacing entirely.
+                // This allows partial updates (e.g., only changing gamut_mapping
+                // without resetting sdr_color_intensity).
+                let existing = config.hdr.take();
+                let merged = niri_config::HdrOutput {
                     enabled: hdr.enabled,
-                    max_luminance: hdr.max_luminance,
-                    min_luminance: hdr.min_luminance,
-                    max_cll: hdr.max_cll,
-                    max_fall: hdr.max_fall,
-                    sdr_brightness: hdr.sdr_brightness,
-                    sdr_color_intensity: hdr.sdr_color_intensity,
-                    passthrough_apps: hdr.passthrough_apps.map(|v| v.join(",")),
-                    colorspace: hdr.colorspace,
-                    bit_depth: hdr.bit_depth,
-                });
+                    max_luminance: hdr.max_luminance.or(existing.as_ref().and_then(|e| e.max_luminance)),
+                    min_luminance: hdr.min_luminance.or(existing.as_ref().and_then(|e| e.min_luminance)),
+                    max_cll: hdr.max_cll.or(existing.as_ref().and_then(|e| e.max_cll)),
+                    max_fall: hdr.max_fall.or(existing.as_ref().and_then(|e| e.max_fall)),
+                    sdr_brightness: hdr.sdr_brightness.or(existing.as_ref().and_then(|e| e.sdr_brightness)),
+                    sdr_color_intensity: hdr.sdr_color_intensity.or(existing.as_ref().and_then(|e| e.sdr_color_intensity)),
+                    passthrough_apps: hdr.passthrough_apps
+                        .map(|v| v.join(","))
+                        .or(existing.as_ref().and_then(|e| e.passthrough_apps.clone())),
+                    gamut_mapping: hdr.gamut_mapping.or(existing.as_ref().and_then(|e| e.gamut_mapping)),
+                    colorspace: hdr.colorspace.or(existing.as_ref().and_then(|e| e.colorspace)),
+                    bit_depth: hdr.bit_depth.or(existing.as_ref().and_then(|e| e.bit_depth)),
+                };
+                config.hdr = Some(merged);
             }
         });
 

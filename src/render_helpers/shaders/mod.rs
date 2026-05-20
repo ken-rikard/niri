@@ -157,6 +157,7 @@ impl Shaders {
                     UniformName::new("u_sdr_brightness_nits", UniformType::_1f),
                     UniformName::new("u_max_nits", UniformType::_1f),
                     UniformName::new("u_sdr_color_intensity", UniformType::_1f),
+                    UniformName::new("u_gamut_mapping_mode", UniformType::_1i),
                 ],
             )
             .map_err(|err| {
