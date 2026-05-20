@@ -140,7 +140,6 @@ The HDR rendering uses a **per-element shader override** architecture:
 - ✅ Remove output image description when HDR is disabled
 - ⚠️ TODO: Wire up `transfer_function` and `colorspace` from config once HLG config fields are added to `niri_config::HdrOutput`
 - ⚠️ TODO: Include mastering display info from EDID when available
-
 **Status:** ⚠️ Implemented but **NOT YET TESTED** on real HDR display.
 
 **How to test:**
