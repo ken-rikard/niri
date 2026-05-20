@@ -150,6 +150,16 @@ The HDR rendering uses a **per-element shader override** architecture:
 5. Verify no crashes or errors
 6. **Code-level verification:** Add a temporary `warn!` log in `reload_output_config` to print the `ImageDescription` values when HDR is toggled, confirm they match expected defaults (PQ, BT.2020, 1000 nits max, 0.005 nits min)
 
+**Status:** ⚠️ Implemented but **NOT YET TESTED** on real HDR display.
+
+**How to test:**
+1. Build and install the updated binary
+2. Enable HDR on your display: `niri msg output HDMI-A-1 hdr true`
+3. Verify no crashes or errors in the log
+4. Disable HDR: `niri msg output HDMI-A-1 hdr false`
+5. Verify no crashes or errors
+6. **Code-level verification:** Add a temporary `warn!` log in `reload_output_config` to print the `ImageDescription` values when HDR is toggled, confirm they match expected defaults (PQ, BT.2020, 1000 nits max, 0.005 nits min)
+
 ---
 
 ## Phase 3: ICC Profile Support
