@@ -409,6 +409,8 @@ struct Surface {
 
     /// Tracy frame that goes from vblank to vblank.
     vblank_frame: Option<tracy_client::Frame>,
+    /// Previous HDR passthrough state (for logging transitions).
+    was_passthrough: bool,
     /// Frame name for the VBlank frame.
     vblank_frame_name: tracy_client::FrameName,
     /// Plot name for the time since presentation plot.
@@ -1619,6 +1621,7 @@ impl Tty {
             gamma_props,
             pending_gamma_change: None,
             vblank_frame: None,
+            was_passthrough: false,
             vblank_frame_name,
             time_since_presentation_plot_name,
             presentation_misprediction_plot_name,
@@ -1997,6 +2000,7 @@ impl Tty {
                 surface.vblank_frame.as_ref(),
                 &self.config.borrow().debug,
                 &self.config.borrow().outputs,
+                &mut surface.was_passthrough,
             ) {
                 return hdr_result;
             }
@@ -2122,8 +2126,9 @@ impl Tty {
         _vblank_frame: Option<&tracy_client::Frame>,
         debug: &niri_config::Debug,
         outputs_config: &niri_config::Outputs,
+        was_passthrough: &mut bool,
     ) -> Option<RenderResult> {
-        use crate::render_helpers::hdr_output::HdrWrappedElement;
+        use crate::render_helpers::hdr_output::{HdrTreatment, HdrWrappedElement};
 
         // Initialize shaders for this renderer.
         shaders::init(renderer.as_gles_renderer());
@@ -2148,21 +2153,79 @@ impl Tty {
             .map(|v| v.clamp(0.0, 2.0) as f32)
             .unwrap_or(1.0);
 
-        // Get HDR shader program.
-        let program = shaders::Shaders::get(renderer).hdr_output.clone();
-        let program = program.or_else(|| {
-            warn!("HDR shader not available, falling back to SDR");
+        // Get HDR shader programs.
+        let shaders = shaders::Shaders::get(renderer);
+        let conversion_program = shaders.hdr_output.clone();
+        let passthrough_program = shaders.hdr_passthrough.clone();
+        let conversion_program = conversion_program.or_else(|| {
+            warn!("HDR conversion shader not available, falling back to SDR");
             None
         })?;
+        let passthrough_program = passthrough_program.or_else(|| {
+            warn!("HDR passthrough shader not available, using conversion for all elements");
+            None
+        });
+
+        // Get passthrough app list from config.
+        let passthrough_apps: Vec<String> = hdr_cfg
+            .as_ref()
+            .and_then(|h| h.passthrough_apps.as_ref())
+            .map(|s| {
+                s.split(',')
+                    .map(|app| app.trim().to_string())
+                    .filter(|app| !app.is_empty())
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        // Check if any visible window on this output is an HDR-native app.
+        // If so, use passthrough mode for all elements on this output.
+        // This is coarse-grained but handles the common case of a single
+        // HDR-native app (mpv, games, etc.) either fullscreen or floating.
+        let mut force_output_passthrough = false;
+        if !passthrough_apps.is_empty() {
+            for mapped in niri.layout.windows_for_output(output) {
+                let app_id = crate::utils::with_toplevel_role(mapped.toplevel(), |role| {
+                    role.app_id.clone().unwrap_or_default()
+                });
+                let is_hdr_app = passthrough_apps.iter().any(|pat| {
+                    // Match exact or with .desktop suffix.
+                    app_id == *pat || app_id == format!("{pat}.desktop")
+                });
+                if is_hdr_app {
+                    force_output_passthrough = true;
+                    break;
+                }
+            }
+        }
+
+        // Log passthrough state transitions.
+        if force_output_passthrough && !*was_passthrough {
+            warn!("HDR passthrough: activated for output {}", name.connector);
+        } else if !force_output_passthrough && *was_passthrough {
+            warn!("HDR passthrough: deactivated for output {}", name.connector);
+        }
+        *was_passthrough = force_output_passthrough;
 
         // Wrap each element with the HDR shader - no offscreen texture needed.
         // The DRM compositor handles all damage tracking natively.
         let hdr_elements: Vec<HdrWrappedElement<'a>> = elements
             .iter()
             .map(|elem| {
+                // If a fullscreen HDR app is visible, put the entire output in
+                // passthrough mode. This avoids double-conversion of native HDR
+                // content. The tradeoff is that SDR overlays may look wrong.
+                let treatment = if force_output_passthrough {
+                    HdrTreatment::Passthrough
+                } else {
+                    HdrTreatment::Convert
+                };
+
                 HdrWrappedElement::new(
                     elem,
-                    program.clone(),
+                    conversion_program.clone(),
+                    passthrough_program.clone().unwrap_or_else(|| conversion_program.clone()),
+                    treatment,
                     sdr_brightness_nits,
                     max_nits,
                     sdr_color_intensity,

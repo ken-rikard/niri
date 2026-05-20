@@ -22,6 +22,7 @@ pub struct Shaders {
     pub custom_close: RefCell<Option<ShaderProgram>>,
     pub custom_open: RefCell<Option<ShaderProgram>>,
     pub hdr_output: Option<GlesTexProgram>,
+    pub hdr_passthrough: Option<GlesTexProgram>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -163,6 +164,16 @@ impl Shaders {
             })
             .ok();
 
+        let hdr_passthrough = renderer
+            .compile_custom_texture_shader(
+                include_str!("hdr_passthrough.frag"),
+                &[],
+            )
+            .map_err(|err| {
+                warn!("error compiling HDR passthrough shader: {err:?}");
+            })
+            .ok();
+
         Self {
             border,
             shadow,
@@ -175,6 +186,7 @@ impl Shaders {
             custom_close: RefCell::new(None),
             custom_open: RefCell::new(None),
             hdr_output,
+            hdr_passthrough,
         }
     }
 

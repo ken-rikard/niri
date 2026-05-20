@@ -1949,6 +1949,7 @@ impl State {
                     max_fall: hdr.max_fall,
                     sdr_brightness: hdr.sdr_brightness,
                     sdr_color_intensity: hdr.sdr_color_intensity,
+                    passthrough_apps: hdr.passthrough_apps.map(|v| v.join(",")),
                     colorspace: hdr.colorspace,
                     bit_depth: hdr.bit_depth,
                 });

@@ -1184,7 +1184,7 @@ pub struct ConfiguredPosition {
 }
 
 /// HDR output configuration.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "clap", derive(clap::Args))]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct HdrOutputConfig {
@@ -1219,6 +1219,10 @@ pub struct HdrOutputConfig {
     /// Values < 1.0 desaturate SDR content.
     #[cfg_attr(feature = "clap", arg(short = 'g', long))]
     pub sdr_color_intensity: Option<f64>,
+    /// List of app-ids or window titles that output native HDR content.
+    /// These apps will bypass SDR->HDR conversion.
+    #[cfg_attr(feature = "clap", arg(short = 'p', long))]
+    pub passthrough_apps: Option<Vec<String>>,
     /// Color space for HDR (bt2020, display-p3, srgb).
     #[cfg_attr(feature = "clap", arg(short = 'c', long))]
     pub colorspace: Option<HdrColorspace>,

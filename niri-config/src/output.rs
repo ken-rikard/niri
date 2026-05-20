@@ -101,6 +101,11 @@ pub struct HdrOutput {
     /// Values < 1.0 desaturate SDR content.
     #[knuffel(property)]
     pub sdr_color_intensity: Option<f64>,
+    /// Comma-separated list of app-ids that output native HDR content.
+    /// These apps bypass SDR->HDR conversion.
+    /// Example: passthrough-apps="mpv,kodi,vlc"
+    #[knuffel(property)]
+    pub passthrough_apps: Option<String>,
     #[knuffel(property, str)]
     pub colorspace: Option<HdrColorspace>,
     #[knuffel(property, str)]
