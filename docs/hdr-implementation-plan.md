@@ -61,11 +61,33 @@ The HDR rendering uses a **per-element shader override** architecture:
 
 ---
 
-## Phase 2: Per-Surface Color Awareness
+## Phase 2: Per-Surface Color Awareness — 🚧 IN PROGRESS
 
 **Priority:** 🟡 HIGH  
 **Impact:** Avoids unnecessary HDR conversion for native HDR windows  
-**Effort:** ~3-4 days
+**Status:** 🚧 Infrastructure complete, app-based passthrough pending
+
+### What Was Done
+
+1. **HDR passthrough shader** (`src/render_helpers/shaders/hdr_passthrough.frag`)
+   - Simple pass-through for content already in PQ/BT.2020
+   - Handles both premultiplied-alpha and NO_ALPHA variants
+   - Used when native HDR content should not be double-converted
+
+2. **Config support** — `passthrough_app: Vec<String>` in `HdrOutput`
+   - Parsed from KDL config: `hdr enabled=true passthrough-app "mpv" passthrough-app "kodi"`
+   - IPC support: `niri msg output HDMI-A-1 hdr true --passthrough-apps mpv,kodi`
+
+3. **Rendering architecture** (`src/render_helpers/hdr_output.rs`)
+   - `HdrWrappedElement` now supports `HdrTreatment::Convert` and `HdrTreatment::Passthrough`
+   - `conversion_program` and `passthrough_program` both stored
+   - Draw selects program based on treatment
+
+### TODO
+
+- [ ] Implement app-id matching in `render_hdr_frame` to determine per-element treatment
+- [ ] Wire up `ColorManagementState` surface tracking when color-management protocol is implemented
+- [ ] Handle mixed HDR/SDR content correctly (some elements convert, some passthrough)
 
 ### 2.1 Complete Color Management Protocol
 
