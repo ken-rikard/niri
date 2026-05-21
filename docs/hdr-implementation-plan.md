@@ -182,7 +182,7 @@ output "HDMI-A-1" {
 **Priority:** 🟡 MEDIUM  
 **Impact:** Prevents oversaturation of wide-gamut SDR content  
 **Effort:** ~2-3 days  
-**Status:** ✅ Implemented, cleanup in progress
+**Status:** ✅ Merged into `feature/hdr-support` (`ceffb117`)
 
 ### 4.1 Gamut Mapping Modes
 
@@ -242,7 +242,8 @@ output "HDMI-A-1" {
 
 **Priority:** 🟢 LOW  
 **Impact:** Support broadcast HDR content  
-**Effort:** ~1 day
+**Effort:** ~1 day  
+**Status:** ✅ Merged into `feature/hdr-support`
 
 ### 6.1 Config Support
 
@@ -422,13 +423,13 @@ Previous architectures tried and rejected:
 
 | Branch | Base / Head | Purpose |
 |--------|-------------|---------|
-| `feature/hdr-support` | `bae9fb7c` (squashed Phase 1) | Stable integration branch — always contains clean, logical milestones |
+| `feature/hdr-support` | `cf45cbf3` (squashed Phase 1 + 2 + 4 + 6) | Stable integration branch — always contains clean, logical milestones |
 | `feature/hdr-sdr-intensity` | `6c2ba2cd` (original 9 commits) | Development branch — full trial-and-error history preserved |
-| `feature/hdr-color-aware` | `bae9fb7c` | Phase 2: Per-surface color awareness (ready to start) |
-| `feature/hdr-gamut-mapping` | `1bb9ef25` (Phase 4 base) + debug fixes | Phase 4: Gamut mapping (✅ implemented, cleanup in progress) |
-| `feature/hdr-icc-profiles` | `bae9fb7c` | Phase 3: ICC profile support (ready to start) |
-| `feature/hdr-dynamic-meta` | `bae9fb7c` | Phase 5: Dynamic metadata (ready to start) |
-| `feature/hdr-hlg` | `bae9fb7c` | Phase 6: HLG support (ready to start) |
+| `feature/hdr-color-aware` | `cf45cbf3` | Phase 2: Per-surface color awareness (rebased) |
+| `feature/hdr-gamut-mapping` | `fc3121d1` (Phase 4 complete) | Phase 4: Gamut mapping (✅ merged into hdr-support) |
+| `feature/hdr-icc-profiles` | `cf45cbf3` | Phase 3: ICC profile support (rebased) |
+| `feature/hdr-dynamic-meta` | `cf45cbf3` | Phase 5: Dynamic metadata (rebased) |
+| `feature/hdr-hlg` | `80960ce0` | Phase 6: HLG support (✅ merged into hdr-support) |
 
 ---
 

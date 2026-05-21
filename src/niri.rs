@@ -1962,6 +1962,7 @@ impl State {
                     gamut_mapping: hdr.gamut_mapping.or(existing.as_ref().and_then(|e| e.gamut_mapping)),
                     colorspace: hdr.colorspace.or(existing.as_ref().and_then(|e| e.colorspace)),
                     bit_depth: hdr.bit_depth.or(existing.as_ref().and_then(|e| e.bit_depth)),
+                    transfer_function: hdr.transfer_function.or(existing.as_ref().and_then(|e| e.transfer_function)),
                 };
                 config.hdr = Some(merged);
             }

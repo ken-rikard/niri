@@ -721,6 +721,7 @@ impl Tty {
                                 1000.0,
                                 400.0,
                                 DRM_MODE_COLORIMETRY_BT2020_RGB,
+                                0, // PQ (default on resume)
                             ) {
                                 Ok(()) => (),
                                 Err(err) => debug!("couldn't set HDR properties on resume: {err:?}"),
@@ -1350,6 +1351,7 @@ impl Tty {
         let mut hdr_max_cll = 1000.0;
         let mut hdr_max_fall = 400.0;
         let mut hdr_colorspace = DRM_MODE_COLORIMETRY_BT2020_RGB;
+        let mut hdr_transfer_function: i32 = 0; // 0=PQ, 1=HLG
         if let Ok(props) = ConnectorProperties::try_new(&device.drm, connector.handle()) {
             debug!("connector properties available, checking HDR config");
             if let Some(ref hdr_cfg) = config.hdr {
@@ -1361,6 +1363,12 @@ impl Tty {
                 hdr_max_fall = hdr_cfg.max_fall.unwrap_or(hdr_max_lum * 0.4);
                 if let Some(cs) = hdr_cfg.colorspace {
                     hdr_colorspace = colorspace_from_config(cs);
+                }
+                if let Some(tf) = hdr_cfg.transfer_function {
+                    hdr_transfer_function = match tf {
+                        niri_ipc::HdrTransferFunction::Pq => 0,
+                        niri_ipc::HdrTransferFunction::Hlg => 1,
+                    };
                 }
             } else {
                 debug!("no HDR config found for this output");
@@ -1594,7 +1602,7 @@ impl Tty {
 
         // Set HDR metadata via atomic commit (must be after surface creation so connector has a CRTC).
         if let Ok(props) = ConnectorProperties::try_new(&device.drm, connector.handle()) {
-            match set_hdr_metadata(&props, hdr_cfg_enabled, hdr_max_lum, hdr_min_lum, hdr_max_cll, hdr_max_fall, hdr_colorspace) {
+            match set_hdr_metadata(&props, hdr_cfg_enabled, hdr_max_lum, hdr_min_lum, hdr_max_cll, hdr_max_fall, hdr_colorspace, hdr_transfer_function) {
                 Ok(()) => info!("HDR metadata set successfully via atomic commit"),
                 Err(err) => warn!("couldn't set HDR properties: {err:?}"),
             }
@@ -2161,6 +2169,14 @@ impl Tty {
                 niri_ipc::GamutMappingMode::Relative => 2,
             })
             .unwrap_or(0);
+        let transfer_function: i32 = hdr_cfg
+            .as_ref()
+            .and_then(|h| h.transfer_function)
+            .map(|tf| match tf {
+                niri_ipc::HdrTransferFunction::Pq => 0,
+                niri_ipc::HdrTransferFunction::Hlg => 1,
+            })
+            .unwrap_or(0);
 
         // Get HDR shader programs.
         let shaders = shaders::Shaders::get(renderer);
@@ -2239,6 +2255,7 @@ impl Tty {
                     max_nits,
                     sdr_color_intensity,
                     gamut_mapping_mode,
+                    transfer_function,
                 )
             })
             .collect();
@@ -3632,11 +3649,20 @@ impl HdrOutputMetadata {
         min_luminance: f64,
         max_cll: f64,
         max_fall: f64,
+        transfer_function: i32,
     ) -> Self {
+        // EOTF values per HDMI 2.1 / CTA-861-H:
+        // 0 = Traditional gamma (SDR)
+        // 1 = HLG (ARIB STD-B67)
+        // 2 = PQ (SMPTE ST 2084)
+        let eotf: u8 = match transfer_function {
+            1 => 1, // HLG
+            _ => 2, // PQ (default)
+        };
         Self {
             metadata_type: 0, // HDMI_STATIC_METADATA_TYPE1
             hdmi_metadata_type1: HdrMetadataInfoframe {
-                eotf: 2,       // SMPTE ST 2084 (PQ)
+                eotf,
                 metadata_type: 0,
                 // BT.2020 display primaries (CIE 1931 xy, units of 0.00002)
                 display_primaries: [
@@ -3664,6 +3690,7 @@ fn set_hdr_metadata(
     max_cll: f64,
     max_fall: f64,
     target_colorspace: u64,
+    transfer_function: i32,
 ) -> anyhow::Result<()> {
     let (hdr_info, hdr_value) = props.find(c"HDR_OUTPUT_METADATA")?;
     let (cs_info, cs_value) = props.find(c"Colorspace")?;
@@ -3704,7 +3731,7 @@ fn set_hdr_metadata(
         return Ok(());
     }
 
-    let metadata = HdrOutputMetadata::new(max_luminance, min_luminance, max_cll, max_fall);
+    let metadata = HdrOutputMetadata::new(max_luminance, min_luminance, max_cll, max_fall, transfer_function);
     let mut metadata_clone = metadata;
     let metadata_bytes = bytemuck::bytes_of_mut(&mut metadata_clone);
     let blob = drm_ffi::mode::create_property_blob(

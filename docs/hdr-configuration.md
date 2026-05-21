@@ -46,6 +46,7 @@ output "HDMI-A-1" {
         enabled=true \
         sdr-brightness=203 \
         sdr-color-intensity=1.2 \
+        gamut-mapping="desaturate" \
         max-luminance=600 \
         colorspace=bt2020 \
         bit-depth=10
@@ -88,6 +89,8 @@ automatically converts them.
 | `max-fall` | `max_fall` | float | — | max_luminance × 0.4 | Maximum frame-average light level |
 | `sdr-brightness` | `sdr_brightness` | float | — | 203 | SDR white brightness in nits |
 | `sdr-color-intensity` | `sdr_color_intensity` | float | 0.0–2.0 | 1.0 | Gamut expansion for SDR content |
+| `gamut-mapping` | `gamut_mapping` | string | `"desaturate"`, `"clip"`, `"relative"` | `"desaturate"` | How to handle out-of-gamut colors after BT.2020 conversion |
+| `passthrough-apps` | `passthrough_apps` | string | comma-separated | — | App-ids that output native HDR content (bypass SDR→HDR conversion) |
 | `colorspace` | `colorspace` | string | `"srgb"`, `"display-p3"`, `"bt2020"` | `"bt2020"` | HDR color space |
 | `bit-depth` | `bit_depth` | string | `"8"`, `"10"`, `"16f"` | `"10"` (auto) | Bit depth for HDR output |
 
@@ -107,6 +110,12 @@ niri msg output HDMI-A-1 hdr true --sdr-brightness 203
 # Set SDR color intensity (Phase 1)
 niri msg output HDMI-A-1 hdr true --sdr-color-intensity 1.5
 
+# Set gamut mapping mode
+niri msg output HDMI-A-1 hdr true --gamut-mapping desaturate
+
+# Set passthrough apps (comma-separated)
+niri msg output HDMI-A-1 hdr true --passthrough-apps mpv,kodi
+
 # Disable HDR
 niri msg output HDMI-A-1 hdr false
 
@@ -114,8 +123,7 @@ niri msg output HDMI-A-1 hdr false
 niri msg outputs
 ```
 
-**Note:** The IPC CLI uses snake_case (`--sdr-color-intensity`) which kebab-case
-(`--sdr-color-intensity`). Both should work with clap.
+**Note:** IPC commands perform **partial updates** — fields not specified retain their current values. For example, `niri msg output HDMI-A-1 hdr true --gamut-mapping clip` changes only the gamut mapping without affecting `sdr-color-intensity` or other settings.
 
 ---
 
@@ -131,12 +139,15 @@ Per-element (via shader override):
     → un-premultiply alpha
     → sRGB gamma decode (BT.709 EOTF)
     → gamut expansion (SDR color intensity)
-    → brightness scaling (× sdr_brightness nits)
     → sRGB → BT.2020 primaries conversion
+    → gamut mapping (desaturate / clip / relative)
+    → brightness scaling (× sdr_brightness nits)
     → PQ encoding (ST 2084 OETF)
     → linear-light alpha blending via framebuffer fetch
     → output to DRM framebuffer (Xrgb2101010, BT2020_RGB)
 ```
+
+**Important:** Gamut mapping runs on normalized `[0,1]` values *before* scaling to nits. This prevents the mapping algorithms from seeing artificially large values and over-compressing colors.
 
 ### Alpha Blending
 
@@ -174,6 +185,11 @@ The per-element architecture matches SDR rendering performance:
 - Decrease `sdr-color-intensity` (try 0.8–0.9).
 - Some SDR content is already wide-gamut and may not need expansion.
 
+### Wide-gamut SDR content has color banding or clipping
+- Set `gamut-mapping="desaturate"` (default) to reduce saturation for out-of-gamut colors.
+- Try `gamut-mapping="relative"` to preserve color relationships while compressing the gamut.
+- Use `gamut-mapping="clip"` for simple clamping (may cause harsh transitions).
+
 ### Colors look wrong (e.g. red appears yellow)
 - This indicates a color matrix issue. Ensure you're running the latest build.
 - The sRGB→BT.2020 matrix must be in column-major order for GLSL.
@@ -188,6 +204,11 @@ The per-element architecture matches SDR rendering performance:
 - Verify `max-luminance` matches your display's actual peak brightness.
 - Check your display's OSD for HDR settings.
 - Try lowering `sdr-brightness` to allocate more headroom to HDR highlights.
+- If playing HDR video (mpv, etc.), add the app to `passthrough-apps` to bypass SDR→HDR conversion.
+
+### Visible square artifact around cursor
+- Known issue: the cursor hardware plane may bypass the HDR shader on some GPU/driver combinations.
+- Workaround: the compositor disables cursor plane scanout in HDR mode, forcing the cursor through the shader path. If the artifact persists, it may be caused by direct element scanout — try `disable-direct-scanout=true` in the `[debug]` section.
 
 ### Display shows wrong colors or flickers
 - Try a different `colorspace` (some displays prefer `bt2020`, others `display-p3`).

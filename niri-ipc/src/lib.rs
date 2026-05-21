@@ -1232,6 +1232,9 @@ pub struct HdrOutputConfig {
     /// Bit depth for HDR (8, 10, 16f).
     #[cfg_attr(feature = "clap", arg(short = 'b', long))]
     pub bit_depth: Option<HdrBitDepth>,
+    /// Transfer function for HDR (pq, hlg).
+    #[cfg_attr(feature = "clap", arg(short = 't', long))]
+    pub transfer_function: Option<HdrTransferFunction>,
 }
 
 /// HDR color space.
@@ -1308,6 +1311,28 @@ impl std::str::FromStr for HdrBitDepth {
             "10" => Ok(Self::Bpp10),
             "16f" => Ok(Self::Bpp16f),
             _ => Err(format!("invalid bit depth: {s}")),
+        }
+    }
+}
+
+/// HDR transfer function.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub enum HdrTransferFunction {
+    /// Perceptual Quantizer (ST 2084).
+    Pq,
+    /// Hybrid Log-Gamma (ARIB STD-B67 / ITU-R BT.2100).
+    Hlg,
+}
+
+impl std::str::FromStr for HdrTransferFunction {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "pq" => Ok(Self::Pq),
+            "hlg" => Ok(Self::Hlg),
+            _ => Err(format!("invalid transfer function: {s}")),
         }
     }
 }

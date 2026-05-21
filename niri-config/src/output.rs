@@ -6,7 +6,7 @@ use knuffel::errors::DecodeError;
 use knuffel::traits::ErrorSpan;
 use knuffel::Decode;
 use niri_ipc::{
-    ConfiguredMode, GamutMappingMode, HdrBitDepth, HdrColorspace, HSyncPolarity, Transform, VSyncPolarity,
+    ConfiguredMode, GamutMappingMode, HdrBitDepth, HdrColorspace, HdrTransferFunction, HSyncPolarity, Transform, VSyncPolarity,
 };
 
 use crate::gestures::HotCorners;
@@ -116,6 +116,11 @@ pub struct HdrOutput {
     pub colorspace: Option<HdrColorspace>,
     #[knuffel(property, str)]
     pub bit_depth: Option<HdrBitDepth>,
+    /// Transfer function for HDR encoding (pq or hlg).
+    /// PQ (ST 2084) is the default and most common HDR format.
+    /// HLG (Hybrid Log-Gamma) is used in broadcast HDR content.
+    #[knuffel(property, str)]
+    pub transfer_function: Option<HdrTransferFunction>,
 }
 
 impl Default for Output {

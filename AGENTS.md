@@ -11,13 +11,13 @@ This is the fork `ken-rikard/niri` implementing HDR support for the niri Wayland
 
 | Branch | Role |
 |--------|------|
-| `feature/hdr-support` | Stable integration branch. Contains only clean, squashed milestones. |
+| `feature/hdr-support` | Stable integration branch. Contains only clean, squashed milestones. Currently at Phase 6 (HLG). |
 | `feature/hdr-sdr-intensity` | Phase 1 dev branch. Preserves full trial-and-error history (9 commits). |
-| `feature/hdr-color-aware` | Phase 2 — per-surface color awareness. |
-| `feature/hdr-gamut-mapping` | Phase 4 — gamut mapping. |
-| `feature/hdr-icc-profiles` | Phase 3 — ICC profile support. |
-| `feature/hdr-dynamic-meta` | Phase 5 — dynamic metadata. |
-| `feature/hdr-hlg` | Phase 6 — HLG support. |
+| `feature/hdr-color-aware` | Phase 2 — per-surface color awareness. Per-element passthrough implemented. ⚠️ **NOT YET TESTED** on real HDR display. |
+| `feature/hdr-gamut-mapping` | Phase 4 — gamut mapping. ✅ Merged into hdr-support. Preserves full dev history. |
+| `feature/hdr-icc-profiles` | Phase 3 — ICC profile support. Rebased onto hdr-support. |
+| `feature/hdr-dynamic-meta` | Phase 5 — dynamic metadata. Rebased onto hdr-support. |
+| `feature/hdr-hlg` | Phase 6 — HLG support. ✅ Merged into hdr-support. Preserves full dev history. |
 
 ## Required Git Workflow
 
@@ -58,8 +58,11 @@ done
 - **Single-pass per-element rendering** — No offscreen texture. Each element is wrapped with `HdrWrappedElement` which calls `override_default_tex_program()` before drawing.
 - **Framebuffer fetch for alpha blending** — `GL_EXT_shader_framebuffer_fetch` decodes PQ framebuffer and blends in linear light. Fallback to premultiplied-PQ path on older GPUs.
 - **DRM compositor handles damage natively** — Same performance as SDR rendering since there's no extra FBO bind or GPU sync.
-- **IPC config changes force full redraw** — HDR shader parameter changes (e.g. `sdr_color_intensity`) are invisible to damage tracking. `reload_output_config` pushes the output to `resized_outputs` to force a full frame render.
+- **IPC config changes force full redraw** — HDR shader parameter changes (e.g. `sdr_color_intensity`, `gamut_mapping_mode`) are invisible to damage tracking. `reload_output_config` pushes the output to `resized_outputs` AND calls `reset_buffer_ages()` on the DRM compositor to force a full frame render.
+- **IPC partial updates merge fields** — When `niri msg output HDMI-A-1 hdr true --gamut-mapping clip` is called, unspecified fields retain their current values. The merge happens in `niri.rs:modify_output_config`.
+- **Shader pipeline order matters** — Gamut mapping runs on normalized `[0,1]` values *before* scaling to nits. Running it after scaling causes over-compression because the algorithms see artificially large values.
 - **Shader initialization must be idempotent** — `shaders::init()` is called every frame in HDR path. It MUST check if shaders already exist before compiling, otherwise GPU driver leaks memory on each recompilation (~38GB OOM crash observed).
+- **Cursor plane artifact (known issue)** — `ALLOW_CURSOR_PLANE_SCANOUT` is disabled in HDR path, but a small transparent square may still appear around the cursor on some GPU/driver combinations. Cursor elements use `Kind::Cursor` which may trigger other scanout paths.
 
 ## Testing Reminder
 
@@ -68,3 +71,5 @@ Before declaring any phase "complete":
 2. Test on actual HDR display (verify via display's HDR info overlay)
 3. Test with semi-transparent windows (e.g. terminal with opacity) — this was the hardest bug to fix
 4. Verify gamma control is disabled in `niri msg output HDMI-A-1 hdr true --sdr-color-intensity 1.2`
+5. Test IPC partial updates — changing one HDR field should not reset others
+6. Test gamut mapping modes with wide-gamut SDR content (e.g. Display P3 images)

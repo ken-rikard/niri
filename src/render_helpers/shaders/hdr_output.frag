@@ -20,6 +20,7 @@ uniform float u_sdr_brightness_nits;
 uniform float u_max_nits;
 uniform float u_sdr_color_intensity;
 uniform int u_gamut_mapping_mode;  // 0=desaturate, 1=clip, 2=relative
+uniform int u_transfer_function;  // 0=PQ (ST 2084), 1=HLG (ARIB STD-B67)
 
 #if defined(DEBUG_FLAGS)
 uniform float tint;
@@ -58,6 +59,33 @@ float pq_eotf(float pq) {
     float num = max(p - PQ_c1, 0.0);
     float den = PQ_c2 - PQ_c3 * p;
     return pow(num / max(den, 1e-6), 1.0 / PQ_m1) * 10000.0;
+}
+
+// HLG (ARIB STD-B67 / ITU-R BT.2100) constants.
+// Reference white is 1000 nits (same as PQ).
+const float HLG_a = 0.17883277;
+const float HLG_b = 0.28466892;
+const float HLG_c = 0.55991073;
+
+// HLG OETF: converts linear light in nits to HLG-encoded signal.
+float hlg_oetf(float linear_nits) {
+    float e = linear_nits / 10000.0;
+    if (e <= 1.0 / 12.0) {
+        return sqrt(3.0 * e);
+    } else {
+        return HLG_a * log(12.0 * e - HLG_b) + HLG_c;
+    }
+}
+
+// HLG EOTF: decodes HLG signal back to linear light in nits.
+float hlg_eotf(float hlg) {
+    if (hlg <= 0.5) {
+        float e = (hlg * hlg) / 3.0;
+        return e * 10000.0;
+    } else {
+        float e = (exp((hlg - HLG_c) / HLG_a) + HLG_b) / 12.0;
+        return e * 10000.0;
+    }
 }
 
 // Convert linear sRGB to linear BT.2020.
@@ -135,38 +163,41 @@ void main() {
     src_linear *= u_sdr_brightness_nits;
 
 #ifdef HAS_FRAMEBUFFER_FETCH
-    // Decode the existing framebuffer (PQ-encoded) and blend in linear light.
-    vec3 fb_pq = gl_LastFragColor.rgb;
+    // Decode the existing framebuffer and blend in linear light.
+    vec3 fb_encoded = gl_LastFragColor.rgb;
     float fb_alpha = gl_LastFragColor.a;
 
-    // Decode PQ to linear nits.
-    vec3 fb_linear = vec3(
-        pq_eotf(fb_pq.r),
-        pq_eotf(fb_pq.g),
-        pq_eotf(fb_pq.b)
-    );
+    // Decode framebuffer to linear nits (use same transfer function).
+    vec3 fb_linear;
+    if (u_transfer_function == 1) {
+        fb_linear = vec3(hlg_eotf(fb_encoded.r), hlg_eotf(fb_encoded.g), hlg_eotf(fb_encoded.b));
+    } else {
+        fb_linear = vec3(pq_eotf(fb_encoded.r), pq_eotf(fb_encoded.g), pq_eotf(fb_encoded.b));
+    }
 
     // Alpha blend in linear light.
     vec3 blended = fb_linear * (1.0 - src_alpha) + src_linear * src_alpha;
 
-    // Encode back to PQ.
-    vec3 out_pq = vec3(
-        pq_oetf(blended.r),
-        pq_oetf(blended.g),
-        pq_oetf(blended.b)
-    );
+    // Encode back to output transfer function.
+    vec3 out_encoded;
+    if (u_transfer_function == 1) {
+        out_encoded = vec3(hlg_oetf(blended.r), hlg_oetf(blended.g), hlg_oetf(blended.b));
+    } else {
+        out_encoded = vec3(pq_oetf(blended.r), pq_oetf(blended.g), pq_oetf(blended.b));
+    }
 
-    gl_FragColor = vec4(out_pq, max(fb_alpha, src_alpha));
+    gl_FragColor = vec4(out_encoded, max(fb_alpha, src_alpha));
 #else
-    // Fallback: simple PQ output (blending in PQ space - incorrect for
+    // Fallback: simple output (blending in encoded space - incorrect for
     // semi-transparent elements but works for opaque content).
-    vec3 pq = vec3(
-        pq_oetf(src_linear.r),
-        pq_oetf(src_linear.g),
-        pq_oetf(src_linear.b)
-    );
+    vec3 encoded;
+    if (u_transfer_function == 1) {
+        encoded = vec3(hlg_oetf(src_linear.r), hlg_oetf(src_linear.g), hlg_oetf(src_linear.b));
+    } else {
+        encoded = vec3(pq_oetf(src_linear.r), pq_oetf(src_linear.g), pq_oetf(src_linear.b));
+    }
 
-    gl_FragColor = vec4(pq, src_alpha);
+    gl_FragColor = vec4(encoded, src_alpha);
 #endif
 
 #if defined(DEBUG_FLAGS)
