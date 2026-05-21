@@ -241,11 +241,19 @@ impl Shaders {
 }
 
 pub fn init(renderer: &mut GlesRenderer) {
+    // Check if shaders are already compiled to avoid recompilation and memory leaks.
+    // This function is called every frame in HDR path, so it must be idempotent.
+    let already_compiled = {
+        let data = renderer.egl_context().user_data();
+        data.get::<Shaders>().is_some()
+    };
+    if already_compiled {
+        return;
+    }
+
     let shaders = Shaders::compile(renderer);
     let data = renderer.egl_context().user_data();
-    if !data.insert_if_missing(|| shaders) {
-        error!("shaders were already compiled");
-    }
+    let _ = data.insert_if_missing(|| shaders);
 }
 
 fn compile_resize_program(
