@@ -144,7 +144,7 @@ use crate::layout::{
     HitType, Layout, LayoutElement as _, LayoutElementRenderElement, MonitorRenderElement,
 };
 use crate::niri_render_elements;
-use crate::protocols::color_management::ColorManagementState;
+use crate::protocols::color_management::{ColorManagementState, image_description_for_hdr_output};
 use crate::protocols::ext_workspace::{self, ExtWorkspaceManagerState};
 use crate::protocols::foreign_toplevel::{self, ForeignToplevelManagerState};
 use crate::protocols::gamma_control::GammaControlManagerState;
@@ -1780,6 +1780,23 @@ impl State {
                     // Force a full redraw when HDR config changes, since the damage tracker
                     // won't detect shader parameter changes as damage.
                     resized_outputs.push(output.clone());
+
+                    // Update output image description in ColorManagementState.
+                    // This prepares for the color management protocol and allows
+                    // future features like per-surface color awareness.
+                    if new_hdr_enabled {
+                        let hdr_cfg = config.and_then(|c| c.hdr.as_ref()).unwrap();
+                        let max_lum = hdr_cfg.max_luminance.unwrap_or(1000.0);
+                        let min_lum = hdr_cfg.min_luminance.unwrap_or(0.005);
+                        let max_cll = hdr_cfg.max_cll.unwrap_or(max_lum);
+                        let max_fall = hdr_cfg.max_fall.unwrap_or(max_lum * 0.4);
+                        // TODO: wire up transfer_function and colorspace from config
+                        // once HLG config fields are added to niri_config::HdrOutput
+                        let desc = image_description_for_hdr_output(max_lum, min_lum, max_cll, max_fall, true, false, true);
+                        self.niri.color_management_state.set_output_image_description(output, desc);
+                    } else {
+                        self.niri.color_management_state.output_removed(output);
+                    }
                 }
 
                 if state.backdrop_buffer.color() != backdrop_color {

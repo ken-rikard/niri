@@ -132,14 +132,18 @@ pub fn image_description_for_hdr_output(
     max_cll: f64,
     max_fall: f64,
     is_pq: bool,
+    is_hlg: bool,
     is_bt2020: bool,
 ) -> ImageDescription {
+    let transfer_function = if is_pq {
+        TransferFunction::Pq
+    } else if is_hlg {
+        TransferFunction::Hlg
+    } else {
+        TransferFunction::Srgb
+    };
     ImageDescription {
-        transfer_function: if is_pq {
-            TransferFunction::Pq
-        } else {
-            TransferFunction::Srgb
-        },
+        transfer_function,
         primaries: if is_bt2020 {
             ColorPrimaries::BT2020
         } else {

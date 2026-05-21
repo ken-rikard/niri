@@ -31,6 +31,7 @@ use smithay::backend::egl::{EGLDevice, EGLDisplay};
 use smithay::backend::libinput::{LibinputInputBackend, LibinputSessionInterface};
 use smithay::backend::renderer::gles::GlesRenderer;
 use smithay::backend::renderer::multigpu::gbm::GbmGlesBackend;
+use smithay::backend::renderer::element::{Element, Id};
 use smithay::backend::renderer::multigpu::{GpuManager, MultiFrame, MultiRenderer};
 use smithay::backend::renderer::{DebugFlags, ImportDma, ImportEgl, RendererSuper};
 use smithay::backend::session::libseat::LibSeatSession;
@@ -52,6 +53,7 @@ use smithay::reexports::rustix::fs::OFlags;
 use smithay::reexports::wayland_protocols;
 use smithay::reexports::wayland_server::protocol::wl_surface::WlSurface;
 use smithay::utils::{DeviceFd, Transform};
+use smithay::wayland::compositor::{TraversalAction, with_surface_tree_downward};
 use smithay::wayland::dmabuf::{DmabufFeedback, DmabufFeedbackBuilder, DmabufGlobal};
 use smithay::wayland::drm_lease::{
     DrmLease, DrmLeaseBuilder, DrmLeaseRequest, DrmLeaseState, LeaseRejected,
@@ -2203,44 +2205,56 @@ impl Tty {
             })
             .unwrap_or_default();
 
-        // Check if any visible window on this output is an HDR-native app.
-        // If so, use passthrough mode for all elements on this output.
-        // This is coarse-grained but handles the common case of a single
-        // HDR-native app (mpv, games, etc.) either fullscreen or floating.
-        let mut force_output_passthrough = false;
-        if !passthrough_apps.is_empty() {
+        // Build a set of surface IDs belonging to passthrough apps.
+        // This allows per-element treatment: only surfaces from HDR-native apps
+        // get passthrough, while SDR overlays/underlays are still converted.
+        let passthrough_surface_ids: HashSet<Id> = if passthrough_apps.is_empty() {
+            HashSet::new()
+        } else {
+            let mut ids = HashSet::new();
             for mapped in niri.layout.windows_for_output(output) {
                 let app_id = crate::utils::with_toplevel_role(mapped.toplevel(), |role| {
                     role.app_id.clone().unwrap_or_default()
                 });
                 let is_hdr_app = passthrough_apps.iter().any(|pat| {
-                    // Match exact or with .desktop suffix.
                     app_id == *pat || app_id == format!("{pat}.desktop")
                 });
                 if is_hdr_app {
-                    force_output_passthrough = true;
-                    break;
+                    // Collect all surface IDs from this window's surface tree.
+                    let surface = mapped.toplevel().wl_surface();
+                    with_surface_tree_downward(
+                        surface,
+                        (),
+                        |_, _, _| TraversalAction::DoChildren(()),
+                        |wl_surface, _, _| {
+                            ids.insert(Id::from_wayland_resource(wl_surface));
+                        },
+                        |_, _, _| true,
+                    );
                 }
             }
-        }
+            ids
+        };
+
+        let any_passthrough = !passthrough_surface_ids.is_empty();
 
         // Log passthrough state transitions.
-        if force_output_passthrough && !*was_passthrough {
+        if any_passthrough && !*was_passthrough {
             warn!("HDR passthrough: activated for output {}", name.connector);
-        } else if !force_output_passthrough && *was_passthrough {
+        } else if !any_passthrough && *was_passthrough {
             warn!("HDR passthrough: deactivated for output {}", name.connector);
         }
-        *was_passthrough = force_output_passthrough;
+        *was_passthrough = any_passthrough;
 
         // Wrap each element with the HDR shader - no offscreen texture needed.
         // The DRM compositor handles all damage tracking natively.
         let hdr_elements: Vec<HdrWrappedElement<'a>> = elements
             .iter()
             .map(|elem| {
-                // If a fullscreen HDR app is visible, put the entire output in
-                // passthrough mode. This avoids double-conversion of native HDR
-                // content. The tradeoff is that SDR overlays may look wrong.
-                let treatment = if force_output_passthrough {
+                // Per-element treatment: check if this element's surface belongs
+                // to a passthrough app. Only matching surfaces get passthrough;
+                // everything else (SDR content, overlays, UI elements) gets converted.
+                let treatment = if passthrough_surface_ids.contains(elem.id()) {
                     HdrTreatment::Passthrough
                 } else {
                     HdrTreatment::Convert

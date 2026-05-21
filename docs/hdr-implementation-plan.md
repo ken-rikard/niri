@@ -70,7 +70,18 @@ The HDR rendering uses a **per-element shader override** architecture:
 
 **Priority:** 🟡 HIGH  
 **Impact:** Avoids unnecessary HDR conversion for native HDR windows  
-**Status:** 🚧 Infrastructure complete, app-based passthrough pending
+**Status:** ⚠️ Implemented but **NOT YET TESTED** on real HDR display. Color management protocol (2.1-2.2) pending.
+
+### Testing TODO
+
+- [ ] **Basic passthrough activation** — Launch mpv with HDR video, verify `HDR passthrough: activated` appears in log
+- [ ] **Per-element treatment** — Open SDR window (e.g. terminal with opacity) over HDR video, verify SDR window colors are correct (not washed out or double-converted)
+- [ ] **SDR-only mode** — Close HDR app, verify all elements switch back to `Convert` treatment
+- [ ] **Popup handling** — Open mpv context menu or OSD overlay, verify popups render correctly
+- [ ] **Multiple passthrough apps** — Configure `passthrough-apps="mpv,kodi"`, verify both apps trigger passthrough
+- [ ] **IPC runtime change** — Run `niri msg output HDMI-A-1 hdr true --passthrough-apps mpv`, verify passthrough activates without restart
+- [ ] **Performance** — Verify no FPS drop with per-element surface ID matching vs output-wide approach
+- [ ] **Cursor artifact** — Verify cursor still renders correctly over passthrough content (known issue from Phase 1/4)
 
 ### What Was Done
 
@@ -90,9 +101,10 @@ The HDR rendering uses a **per-element shader override** architecture:
 
 ### TODO
 
-- [ ] Implement app-id matching in `render_hdr_frame` to determine per-element treatment
+- [x] Implement app-id matching in `render_hdr_frame` to determine per-element treatment
 - [ ] Wire up `ColorManagementState` surface tracking when color-management protocol is implemented
-- [ ] Handle mixed HDR/SDR content correctly (some elements convert, some passthrough)
+- [x] Handle mixed HDR/SDR content correctly (some elements convert, some passthrough)
+- [x] Set output image description when HDR is enabled/disabled (2.4) ⚠️ **NOT TESTED**
 
 ### 2.1 Complete Color Management Protocol
 
@@ -122,11 +134,22 @@ The HDR rendering uses a **per-element shader override** architecture:
 
 ### 2.4 Output Image Description
 
-**File:** `src/backend/tty.rs`
+**File:** `src/backend/tty.rs`, `src/niri.rs`
 
-- Set output image description based on HDR config
-- Include mastering display info from EDID when available
-- Update description when HDR config changes
+- ✅ Set output image description based on HDR config when HDR is enabled
+- ✅ Remove output image description when HDR is disabled
+- ⚠️ TODO: Wire up `transfer_function` and `colorspace` from config once HLG config fields are added to `niri_config::HdrOutput`
+- ⚠️ TODO: Include mastering display info from EDID when available
+
+**Status:** ⚠️ Implemented but **NOT YET TESTED** on real HDR display.
+
+**How to test:**
+1. Build and install the updated binary
+2. Enable HDR on your display: `niri msg output HDMI-A-1 hdr true`
+3. Verify no crashes or errors in the log
+4. Disable HDR: `niri msg output HDMI-A-1 hdr false`
+5. Verify no crashes or errors
+6. **Code-level verification:** Add a temporary `warn!` log in `reload_output_config` to print the `ImageDescription` values when HDR is toggled, confirm they match expected defaults (PQ, BT.2020, 1000 nits max, 0.005 nits min)
 
 ---
 
@@ -251,18 +274,27 @@ output "HDMI-A-1" {
 output "HDMI-A-1" {
     hdr {
         enabled true
-        transfer_function "hlg"  // NEW: "pq" (default) or "hlg"
+        transfer_function "hlg"  // "pq" (default) or "hlg"
     }
 }
 ```
 
-### 6.2 Shader Selection
+### 6.2 Shader Implementation
+
+**File:** `src/render_helpers/shaders/hdr_output.frag`
+
+- HLG OETF/EOTF (ARIB STD-B67 / ITU-R BT.2100) added alongside PQ
+- `u_transfer_function` uniform (0=PQ, 1=HLG) switches encoding/decoding
+- Framebuffer fetch decodes using current transfer function
+- Single shader handles both modes (no separate shader files needed)
+
+### 6.3 DRM Metadata
 
 **File:** `src/backend/tty.rs`
 
-- Select `hdr_tonemap_hlg.frag` when HLG mode active
-- Use `hdr_tonemap.frag` for PQ mode (default)
-- Set appropriate DRM metadata for HLG
+- `HdrOutputMetadata::new` accepts `transfer_function` parameter
+- EOTF field set to 1 for HLG, 2 for PQ (per HDMI 2.1 / CTA-861-H)
+- IPC support: `niri msg output HDMI-A-1 hdr true --transfer-function hlg`
 
 ---
 
@@ -370,7 +402,7 @@ output "HDMI-A-1" {
 | 3 | `icc.rs`, `icc_profile.frag` | `output.rs`, `lib.rs`, `mod.rs`, `tty.rs` |
 | 4 | - | `hdr_output.frag`, `hdr_output.rs`, `tty.rs`, `niri.rs`, `output.rs`, `lib.rs`, `shaders/mod.rs` |
 | 5 | - | `tty.rs` |
-| 6 | - | `output.rs`, `lib.rs`, `tty.rs` |
+| 6 | - | `hdr_output.frag`, `hdr_output.rs`, `tty.rs`, `niri.rs`, `output.rs`, `lib.rs`, `shaders/mod.rs` |
 | 7 | - | `tty.rs` |
 | 8 | Vulkan layer code | Multiple |
 | 9 | X11 atom handling | Multiple |
