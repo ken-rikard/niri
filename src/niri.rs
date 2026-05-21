@@ -453,6 +453,8 @@ pub struct OutputState {
     pub on_demand_vrr_enabled: bool,
     // HDR state for this output.
     pub hdr_enabled: bool,
+    /// Parsed ICC profile for color-accurate rendering, if configured.
+    pub icc_profile: Option<crate::color::icc::IccProfile>,
     // After the last redraw, some ongoing animations still remain.
     pub unfinished_animations_remain: bool,
     /// Last sequence received in a vblank event.
@@ -2906,6 +2908,34 @@ impl Niri {
                 layout.background_color = c.and_then(|c| c.background_color);
             }
         }
+        
+        // Load ICC profile if configured.
+        let icc_profile = c
+            .and_then(|c| c.icc_profile.as_ref())
+            .and_then(|path| {
+                let expanded = if path.starts_with("~/") {
+                    std::env::var("HOME")
+                        .map(|home| format!("{}{}", home, &path[1..]))
+                        .unwrap_or_else(|_| path.clone())
+                } else {
+                    path.clone()
+                };
+                match crate::color::icc::parse_icc_profile(&expanded) {
+                    Ok(profile) => {
+                        info!("Loaded ICC profile for {}: {} ({})", 
+                              name.connector, 
+                              expanded,
+                              profile.description);
+                        Some(profile)
+                    }
+                    Err(err) => {
+                        warn!("Failed to load ICC profile for {}: {}: {}",
+                              name.connector, path, err);
+                        None
+                    }
+                }
+            });
+        
         drop(config);
 
         // Set scale and transform before adding to the layout since that will read the output size.
@@ -2915,8 +2945,6 @@ impl Niri {
             Some(output::Scale::Fractional(scale)),
             None,
         );
-
-        self.layout.add_output(output.clone(), layout_config);
 
         let lock_render_state = if self.is_locked() {
             // We haven't rendered anything yet so it's as good as locked.
@@ -2931,6 +2959,7 @@ impl Niri {
             redraw_state: RedrawState::Idle,
             on_demand_vrr_enabled: false,
             hdr_enabled,
+            icc_profile,
             unfinished_animations_remain: false,
             frame_clock: FrameClock::new(refresh_interval, vrr),
             last_drm_sequence: None,

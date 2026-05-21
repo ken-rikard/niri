@@ -79,7 +79,12 @@ pub struct Output {
     #[knuffel(child)]
     pub layout: Option<LayoutPart>,
     #[knuffel(child)]
-pub hdr: Option<HdrOutput>,
+    pub hdr: Option<HdrOutput>,
+    /// Path to ICC profile for color-accurate rendering on this output.
+    /// Supports sRGB, Display P3, and other RGB display profiles.
+    /// Example: icc-profile="/usr/share/color/icc/sRGB.icc"
+    #[knuffel(child, unwrap(argument))]
+    pub icc_profile: Option<String>,
 }
 
 #[derive(knuffel::Decode, Debug, Clone, PartialEq)]
@@ -140,6 +145,7 @@ impl Default for Output {
             hot_corners: None,
             layout: None,
             hdr: None,
+            icc_profile: None,
         }
     }
 }

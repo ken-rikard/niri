@@ -159,6 +159,8 @@ impl Shaders {
                     UniformName::new("u_sdr_color_intensity", UniformType::_1f),
                     UniformName::new("u_gamut_mapping_mode", UniformType::_1i),
                     UniformName::new("u_transfer_function", UniformType::_1i),
+                    UniformName::new("u_icc_enabled", UniformType::_1i),
+                    UniformName::new("u_icc_matrix", UniformType::Matrix3x3),
                 ],
             )
             .map_err(|err| {

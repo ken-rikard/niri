@@ -1,5 +1,5 @@
 use smithay::backend::renderer::element::{Element, Id, Kind, RenderElement, UnderlyingStorage};
-use smithay::backend::renderer::gles::{GlesError, GlesFrame, GlesRenderer, GlesTexProgram, GlesTexture, Uniform};
+use smithay::backend::renderer::gles::{GlesError, GlesFrame, GlesRenderer, GlesTexProgram, GlesTexture, Uniform, UniformValue};
 use smithay::backend::renderer::utils::{CommitCounter, DamageSet, DamageSnapshot, OpaqueRegions};
 use smithay::utils::user_data::UserDataMap;
 use smithay::utils::{Buffer, Physical, Rectangle, Scale, Transform};
@@ -33,6 +33,7 @@ pub struct HdrWrappedElement<'a> {
     sdr_color_intensity: f32,
     gamut_mapping_mode: i32,
     transfer_function: i32,
+    icc_matrix: Option<[[f32; 3]; 3]>,
 }
 
 impl<'a> HdrWrappedElement<'a> {
@@ -46,6 +47,7 @@ impl<'a> HdrWrappedElement<'a> {
         sdr_color_intensity: f32,
         gamut_mapping_mode: i32,
         transfer_function: i32,
+        icc_matrix: Option<[[f32; 3]; 3]>,
     ) -> Self {
         Self {
             inner,
@@ -57,17 +59,54 @@ impl<'a> HdrWrappedElement<'a> {
             sdr_color_intensity,
             gamut_mapping_mode,
             transfer_function,
+            icc_matrix,
         }
     }
 
     fn conversion_uniforms(&self) -> Vec<Uniform<'static>> {
-        vec![
+        let mut uniforms = vec![
             Uniform::new("u_sdr_brightness_nits", self.sdr_brightness_nits),
             Uniform::new("u_max_nits", self.max_nits),
             Uniform::new("u_sdr_color_intensity", self.sdr_color_intensity),
             Uniform::new("u_gamut_mapping_mode", self.gamut_mapping_mode),
             Uniform::new("u_transfer_function", self.transfer_function),
-        ]
+        ];
+        
+        // Add ICC matrix uniforms when available.
+        if let Some(matrix) = self.icc_matrix {
+            uniforms.push(Uniform::new("u_icc_enabled", 1i32));
+            // GLSL mat3 is stored in column-major order.
+            // Our Rust matrix is row-major: matrix[row][col].
+            // So we need to transpose for GLSL.
+            let flat: [f32; 9] = [
+                matrix[0][0], matrix[1][0], matrix[2][0],  // column 0
+                matrix[0][1], matrix[1][1], matrix[2][1],  // column 1
+                matrix[0][2], matrix[1][2], matrix[2][2],  // column 2
+            ];
+            uniforms.push(Uniform::new(
+                "u_icc_matrix",
+                UniformValue::Matrix3x3 {
+                    matrices: vec![flat],
+                    transpose: false,
+                },
+            ));
+        } else {
+            uniforms.push(Uniform::new("u_icc_enabled", 0i32));
+            let identity: [f32; 9] = [
+                1.0, 0.0, 0.0,  // column 0
+                0.0, 1.0, 0.0,  // column 1
+                0.0, 0.0, 1.0,  // column 2
+            ];
+            uniforms.push(Uniform::new(
+                "u_icc_matrix",
+                UniformValue::Matrix3x3 {
+                    matrices: vec![identity],
+                    transpose: false,
+                },
+            ));
+        }
+        
+        uniforms
     }
 }
 

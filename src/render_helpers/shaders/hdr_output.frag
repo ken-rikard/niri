@@ -21,6 +21,8 @@ uniform float u_max_nits;
 uniform float u_sdr_color_intensity;
 uniform int u_gamut_mapping_mode;  // 0=desaturate, 1=clip, 2=relative
 uniform int u_transfer_function;  // 0=PQ (ST 2084), 1=HLG (ARIB STD-B67)
+uniform int u_icc_enabled;  // 0=disabled, 1=enabled
+uniform mat3 u_icc_matrix;  // sRGB→ICC display color space matrix
 
 #if defined(DEBUG_FLAGS)
 uniform float tint;
@@ -156,7 +158,14 @@ void main() {
         srgb_to_linear(src_srgb.b)
     );
     src_linear = expand_gamut(src_linear, u_sdr_color_intensity);
-    src_linear = srgb_to_bt2020(src_linear);
+    
+    // Apply ICC profile color correction when available, otherwise use BT.2020.
+    if (u_icc_enabled == 1) {
+        src_linear = u_icc_matrix * src_linear;
+    } else {
+        src_linear = srgb_to_bt2020(src_linear);
+    }
+    
     src_linear = gamut_map(src_linear, u_gamut_mapping_mode);
 
     // Scale to nits AFTER gamut mapping (which expects [0,1] values).

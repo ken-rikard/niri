@@ -2246,6 +2246,12 @@ impl Tty {
         }
         *was_passthrough = any_passthrough;
 
+        // Get ICC profile matrix if available.
+        let icc_matrix = niri.output_state.get(output)
+            .and_then(|state| state.icc_profile.as_ref())
+            .and_then(|profile| profile.srgb_correction_matrix())
+            .map(|matrix| crate::color::icc::IccProfile::matrix_to_f32(&matrix));
+
         // Wrap each element with the HDR shader - no offscreen texture needed.
         // The DRM compositor handles all damage tracking natively.
         let hdr_elements: Vec<HdrWrappedElement<'a>> = elements
@@ -2270,6 +2276,7 @@ impl Tty {
                     sdr_color_intensity,
                     gamut_mapping_mode,
                     transfer_function,
+                    icc_matrix,
                 )
             })
             .collect();
