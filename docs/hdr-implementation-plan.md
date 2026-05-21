@@ -157,46 +157,58 @@ The HDR rendering uses a **per-element shader override** architecture:
 
 **Priority:** 🟡 MEDIUM  
 **Impact:** Color-accurate SDR rendering on wide-gamut displays  
-**Effort:** ~4-5 days
+**Effort:** ~4-5 days  
+**Status:** ✅ Implemented (basic matrix-based correction)
 
 ### 3.1 ICC Profile Loading
 
 **New file:** `src/color/icc.rs`
 
-- Parse ICC profiles (v2 and v4)
-- Extract color primaries, transfer function, gamut mapping
-- Support sRGB, Display P3, Adobe RGB profiles
-- Cache loaded profiles
+- ✅ Parse ICC profiles (v2 and v4) — header, tag table, rXYZ/gXYZ/bXYZ/wtpt
+- ✅ Extract color primaries and white point
+- ✅ Compute sRGB→Display color correction matrix using linear algebra
+- ✅ Support path expansion (`~` → `$HOME`)
 
 ### 3.2 Config Support
 
-**Files:** `niri-config/src/output.rs`, `niri-ipc/src/lib.rs`
+**Files:** `niri-config/src/output.rs`
 
 ```kdl
 output "HDMI-A-1" {
-    icc_profile "/usr/share/color/icc/colord/sRGB.icc"
+    icc-profile "/usr/share/color/icc/colord/sRGB.icc"
 }
 ```
 
-- Add `icc_profile: Option<String>` to output config
-- Resolve paths (support `~` expansion)
-- Validate profile exists and is parseable
+- ✅ Add `icc_profile: Option<String>` to output config
+- ✅ Load profile when output connects
+- ✅ Store parsed profile in `OutputState`
 
-### 3.3 ICC Profile Shader
+### 3.3 ICC Profile Shader Integration
 
-**New file:** `src/render_helpers/shaders/icc_profile.frag`
+**Files:** `src/render_helpers/shaders/hdr_output.frag`, `src/render_helpers/hdr_output.rs`
 
-- Generate 3D LUT from ICC profile at load time
-- Apply LUT in shader for color transformation
-- Support both input and output profiles
+- ✅ Replace BT.2020 matrix with ICC-derived matrix when profile loaded
+- ✅ Uniform `u_icc_enabled` and `u_icc_matrix` added to HDR shader
+- ✅ Matrix passed as column-major 3×3 GLSL uniform
 
 ### 3.4 Integration
 
-**Files:** `src/render_helpers/mod.rs`, `src/backend/tty.rs`
+**Files:** `src/backend/tty.rs`, `src/niri.rs`
 
-- Load ICC profile when output connects
-- Apply profile in rendering pipeline
-- Handle profile reload on config change
+- ✅ Load ICC profile in `add_output()` when connector connects
+- ✅ Pass ICC matrix to `HdrWrappedElement` during rendering
+- ✅ Apply matrix when `icc_profile` is configured in output config
+
+### Usage
+
+```bash
+# 1. Place ICC profile somewhere accessible
+# 2. Add to config.kdl:
+# output "DP-3" {
+#     icc-profile "/home/user/.local/share/icc/my-display.icc"
+# }
+# 3. Reload config: niri msg action reload-config
+```
 
 ---
 
