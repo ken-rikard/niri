@@ -2938,64 +2938,10 @@ impl Tty {
             }
         }
 
-        // Reload ICC profiles when config changes.
-        // Collect paths first to avoid borrow issues.
-        let icc_updates: Vec<(String, Option<String>)> = {
-            let config = self.config.borrow();
-            self.devices
-                .values()
-                .flat_map(|device| device.surfaces.values())
-                .filter_map(|surface| {
-                    config.outputs.find(&surface.name).map(|c| {
-                        (surface.name.connector.clone(), c.icc_profile.clone())
-                    })
-                })
-                .collect()
-        };
-
-        for (connector_name, icc_path) in icc_updates {
-            let output = niri
-                .global_space
-                .outputs()
-                .find(|output| {
-                    output.user_data().get::<OutputName>().map(|name| &name.connector == &connector_name).unwrap_or(false)
-                });
-            if let Some(output) = output {
-                if let Some(state) = niri.output_state.get_mut(output) {
-                    let new_profile = icc_path.and_then(|path| {
-                        let expanded = if path.starts_with("~/") {
-                            std::env::var("HOME")
-                                .map(|home| format!("{}{}", home, &path[1..]))
-                                .unwrap_or_else(|_| path.clone())
-                        } else {
-                            path.clone()
-                        };
-                        match crate::color::icc::parse_icc_profile(&expanded) {
-                            Ok(profile) => {
-                                info!("Reloaded ICC profile for {}: {} ({})", 
-                                      connector_name, expanded, profile.description);
-                                Some(profile)
-                            }
-                            Err(err) => {
-                                warn!("Failed to reload ICC profile for {}: {}: {}",
-                                      connector_name, path, err);
-                                None
-                            }
-                        }
-                    });
-                    state.icc_profile = new_profile;
-                    
-                    // Force full redraw since color matrix changed.
-                    for device in self.devices.values_mut() {
-                        for surface in device.surfaces.values_mut() {
-                            if surface.name.connector == connector_name {
-                                surface.compositor.reset_buffer_ages();
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // NOTE: ICC profile reloading on config change is intentionally disabled.
+        // Loading profiles during startup can cause timing issues with layout
+        // initialization. To change ICC profiles, restart niri.
+        // TODO: Re-enable once startup ordering is stable.
 
         self.refresh_ipc_outputs(niri);
     }
