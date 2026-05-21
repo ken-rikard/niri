@@ -6,7 +6,7 @@ use std::num::NonZeroU64;
 use std::os::fd::{AsFd, OwnedFd};
 use std::path::Path;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
+use std::sync::{atomic::{AtomicU64, Ordering}, Arc, Mutex};
 use std::time::Duration;
 use std::{io, mem};
 
@@ -2129,6 +2129,17 @@ impl Tty {
         was_passthrough: &mut bool,
     ) -> Option<RenderResult> {
         use crate::render_helpers::hdr_output::{HdrTreatment, HdrWrappedElement};
+
+        // MEMORY LEAK INSTRUMENTATION: Log RSS every ~60 seconds (3600 frames at 60fps).
+        static FRAME_COUNT: AtomicU64 = AtomicU64::new(0);
+        let count = FRAME_COUNT.fetch_add(1, Ordering::Relaxed);
+        if count % 3600 == 0 {
+            if let Ok(status) = std::fs::read_to_string("/proc/self/status") {
+                if let Some(line) = status.lines().find(|l| l.starts_with("VmRSS:")) {
+                    warn!("HDR memory check (frame #{}): {}", count, line);
+                }
+            }
+        }
 
         // Initialize shaders for this renderer.
         shaders::init(renderer.as_gles_renderer());
