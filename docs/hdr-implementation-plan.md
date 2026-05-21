@@ -243,21 +243,26 @@ output "HDMI-A-1" {
 
 **Priority:** 🟢 LOW  
 **Impact:** Display can optimize brightness per-frame  
-**Effort:** ~2 days
+**Effort:** ~2 days  
+**Status:** ✅ Implemented (Config-driven dynamic updates)
 
-### 5.1 Per-Frame max_cll Calculation
+### 5.1 Dynamic Metadata Updates
 
 **File:** `src/backend/tty.rs`
 
-- After rendering to offscreen texture, sample brightest pixel
-- Update `HDR_OUTPUT_METADATA` blob with new `max_cll`
-- Use async compute to avoid blocking render loop
+- ✅ Re-applies HDR metadata blob when config changes via IPC.
+- ✅ Allows runtime updates of `max_cll`, `max_fall`, `max_luminance`.
+- ⚠️ **Note:** Automatic per-frame pixel sampling for `max_cll` is not implemented.
+  - The current GLES per-element architecture makes framebuffer readbacks expensive.
+  - Dynamic updates are driven by config changes (e.g., external scripts or user commands).
+  - Future work: Implement efficient metadata calculation via Vulkan compute or DMA-BUF analysis.
 
-### 5.2 Optimized Brightness Detection
+### Usage
 
-- Use downsampled texture for faster analysis
-- Cache previous frame's max_cll for stability
-- Apply temporal filtering to avoid flickering
+```bash
+# Update max_cll dynamically
+niri msg output HDMI-A-1 hdr true --max-cll 4000
+```
 
 ---
 
@@ -455,12 +460,12 @@ Previous architectures tried and rejected:
 
 | Branch | Base / Head | Purpose |
 |--------|-------------|---------|
-| `feature/hdr-support` | `cf45cbf3` (squashed Phase 1 + 2 + 4 + 6) | Stable integration branch — always contains clean, logical milestones |
+| `feature/hdr-support` | `8a73d7fd` (squashed Phase 1 + 2 + 4 + 6) | Stable integration branch — always contains clean, logical milestones |
 | `feature/hdr-sdr-intensity` | `6c2ba2cd` (original 9 commits) | Development branch — full trial-and-error history preserved |
 | `feature/hdr-color-aware` | `cf45cbf3` | Phase 2: Per-surface color awareness (rebased) |
 | `feature/hdr-gamut-mapping` | `fc3121d1` (Phase 4 complete) | Phase 4: Gamut mapping (✅ merged into hdr-support) |
 | `feature/hdr-icc-profiles` | `cf45cbf3` | Phase 3: ICC profile support (rebased) |
-| `feature/hdr-dynamic-meta` | `cf45cbf3` | Phase 5: Dynamic metadata (rebased) |
+| `feature/hdr-dynamic-meta` | `0cad31be` | Phase 5: Dynamic metadata (✅ implemented, ⚠️ untested) |
 | `feature/hdr-hlg` | `80960ce0` | Phase 6: HLG support (✅ merged into hdr-support) |
 
 ---

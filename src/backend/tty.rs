@@ -2902,6 +2902,29 @@ impl Tty {
                     if let Some(state) = niri.output_state.get(output) {
                         if state.hdr_enabled {
                             surface.compositor.reset_buffer_ages();
+
+                            // Re-apply HDR metadata if config changed.
+                            // This allows dynamic updates of max_cll, max_fall, etc. via IPC.
+                            if let Ok(props) = ConnectorProperties::try_new(&device.drm, surface.connector) {
+                                let config = self.config.borrow();
+                                if let Some(ref hdr_cfg) = config.outputs.find(&surface.name).and_then(|c| c.hdr.clone()) {
+                                    if hdr_cfg.enabled {
+                                        let max_lum = hdr_cfg.max_luminance.unwrap_or(1000.0);
+                                        let min_lum = hdr_cfg.min_luminance.unwrap_or(0.005);
+                                        let max_cll = hdr_cfg.max_cll.unwrap_or(max_lum);
+                                        let max_fall = hdr_cfg.max_fall.unwrap_or(max_lum * 0.4);
+                                        let colorspace = hdr_cfg.colorspace.map(|cs| colorspace_from_config(cs)).unwrap_or(DRM_MODE_COLORIMETRY_BT2020_RGB);
+                                        let transfer_function = hdr_cfg.transfer_function
+                                            .map(|tf| match tf {
+                                                niri_ipc::HdrTransferFunction::Pq => 0,
+                                                niri_ipc::HdrTransferFunction::Hlg => 1,
+                                            })
+                                            .unwrap_or(0);
+                                        info!("Dynamic metadata update: transfer_function={} (0=PQ, 1=HLG)", transfer_function);
+                                        let _ = set_hdr_metadata(&props, true, max_lum, min_lum, max_cll, max_fall, colorspace, transfer_function);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -3673,6 +3696,7 @@ impl HdrOutputMetadata {
             1 => 1, // HLG
             _ => 2, // PQ (default)
         };
+        info!("HdrOutputMetadata: transfer_function={}, eotf={} (0=SDR, 1=HLG, 2=PQ)", transfer_function, eotf);
         Self {
             metadata_type: 0, // HDMI_STATIC_METADATA_TYPE1
             hdmi_metadata_type1: HdrMetadataInfoframe {
