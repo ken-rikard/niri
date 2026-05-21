@@ -2004,7 +2004,7 @@ impl Tty {
             ) {
                 return hdr_result;
             }
-            // If HDR rendering failed, fall through to SDR path.
+            warn!("HDR render failed, falling back to SDR path for this frame");
         }
 
         // Overlay planes are disabled by default as they cause weird performance issues on my
@@ -2310,7 +2310,11 @@ impl Tty {
 
                 return Some(RenderResult::Submitted);
             } else {
-                warn!("error queueing HDR frame");
+                warn!("HDR queue_frame failed, resetting swapchain to recover leaked buffers");
+                // If queue_frame fails, the buffer acquired by render_frame is stuck
+                // (marked as submitted but commit failed). Resetting the swapchain
+                // drops all buffers and prevents memory accumulation.
+                drm_compositor.reset_buffers();
             }
         }
 
