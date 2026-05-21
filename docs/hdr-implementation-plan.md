@@ -59,6 +59,7 @@ The HDR rendering uses a **per-element shader override** architecture:
     - Alpha blending in PQ space caused black screen with overlays → framebuffer fetch fix
     - Performance: eliminated two-pass offscreen architecture → single-pass per-element
     - IPC config changes didn't trigger redraw → added `resized_outputs.push()` + `reset_buffer_ages()` in config change path
+    - **Massive memory leak (38GB OOM)** → `shaders::init()` recompiled GLSL shaders every frame. Fixed by making init idempotent (check if already compiled before compiling).
 
 5. **Known issues**
     - [ ] **Cursor plane artifact** — small transparent square around mouse pointer persists even with `ALLOW_CURSOR_PLANE_SCANOUT` removed. Cursor elements are rendered as `Kind::Cursor` but still bypass the HDR shader via some other path (likely direct scanout or separate composition). Needs investigation.

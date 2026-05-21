@@ -59,6 +59,7 @@ done
 - **Framebuffer fetch for alpha blending** — `GL_EXT_shader_framebuffer_fetch` decodes PQ framebuffer and blends in linear light. Fallback to premultiplied-PQ path on older GPUs.
 - **DRM compositor handles damage natively** — Same performance as SDR rendering since there's no extra FBO bind or GPU sync.
 - **IPC config changes force full redraw** — HDR shader parameter changes (e.g. `sdr_color_intensity`) are invisible to damage tracking. `reload_output_config` pushes the output to `resized_outputs` to force a full frame render.
+- **Shader initialization must be idempotent** — `shaders::init()` is called every frame in HDR path. It MUST check if shaders already exist before compiling, otherwise GPU driver leaks memory on each recompilation (~38GB OOM crash observed).
 
 ## Testing Reminder
 
