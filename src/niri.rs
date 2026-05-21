@@ -2938,6 +2938,8 @@ impl Niri {
         
         drop(config);
 
+        self.layout.add_output(output.clone(), layout_config);
+
         // Set scale and transform before adding to the layout since that will read the output size.
         output.change_current_state(
             None,
