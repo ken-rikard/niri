@@ -83,7 +83,7 @@ pub struct Output {
     /// Path to ICC profile for color-accurate rendering on this output.
     /// Supports sRGB, Display P3, and other RGB display profiles.
     /// Example: icc-profile="/usr/share/color/icc/sRGB.icc"
-    #[knuffel(child, unwrap(argument))]
+    #[knuffel(child, unwrap(argument, str))]
     pub icc_profile: Option<String>,
 }
 
