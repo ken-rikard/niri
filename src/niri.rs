@@ -1892,7 +1892,74 @@ impl State {
     }
 
     pub fn apply_transient_output_config(&mut self, name: &str, action: niri_ipc::OutputAction) {
-        self.modify_output_config(name, move |config| match action {
+        // Handle ICC toggle directly without modifying config.
+        if let niri_ipc::OutputAction::Icc { enabled } = &action {
+            let output_opt = self.niri.output_by_name_match(name).cloned();
+            let needs_redraw = if let Some(ref output) = output_opt {
+                let state = self.niri.output_state.get_mut(output);
+                if let Some(state) = state {
+                    if *enabled {
+                        if state.icc_profile.is_some() {
+                            info!("ICC profile already enabled for {}", name);
+                            false
+                        } else {
+                            let config = self.niri.config.borrow();
+                            let icc_path = config.outputs.0.iter()
+                                .find(|o| o.name == name)
+                                .and_then(|c| c.icc_profile.clone());
+                            drop(config);
+                            
+                            if let Some(path) = icc_path {
+                                let expanded = if path.starts_with("~/") {
+                                    std::env::var("HOME")
+                                        .map(|home| format!("{}{}", home, &path[1..]))
+                                        .unwrap_or_else(|_| path.clone())
+                                } else {
+                                    path.clone()
+                                };
+                                match crate::color::icc::parse_icc_profile(&expanded) {
+                                    Ok(profile) => {
+                                        info!("Enabled ICC profile for {}: {} ({})",
+                                              name, expanded, profile.description);
+                                        state.icc_profile = Some(profile);
+                                        true
+                                    }
+                                    Err(err) => {
+                                        warn!("Failed to enable ICC profile for {}: {}",
+                                              name, err);
+                                        false
+                                    }
+                                }
+                            } else {
+                                warn!("No ICC profile configured for output {}", name);
+                                false
+                            }
+                        }
+                    } else if state.icc_profile.take().is_some() {
+                        info!("Disabled ICC profile for {}", name);
+                        true
+                    } else {
+                        info!("ICC profile already disabled for {}", name);
+                        false
+                    }
+                } else {
+                    false
+                }
+            } else {
+                false
+            };
+            if needs_redraw {
+                if let Some(output) = output_opt {
+                    self.niri.queue_redraw(&output);
+                }
+            }
+            return;
+        }
+        
+        self.modify_output_config(name, move |config| match action.clone() {
+            niri_ipc::OutputAction::Icc { .. } => {
+                // Already handled above.
+            }
             niri_ipc::OutputAction::Off => config.off = true,
             niri_ipc::OutputAction::On => config.off = false,
             niri_ipc::OutputAction::Mode { mode } => {
