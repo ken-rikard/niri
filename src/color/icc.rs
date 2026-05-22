@@ -380,6 +380,19 @@ pub fn multiply_matrices(a: &[[f64; 3]; 3], b: &[[f64; 3]; 3]) -> [[f64; 3]; 3] 
     result
 }
 
+/// Bradford chromatic adaptation matrix from D65 to D50.
+///
+/// This transforms XYZ values from D65 white point to D50 white point,
+/// which is necessary because ICC profiles use D50 as the PCS illuminant
+/// while sRGB uses D65.
+fn bradford_d65_to_d50() -> [[f64; 3]; 3] {
+    [
+        [1.0478112, 0.0228866, -0.0501270],
+        [0.0295424, 0.9904844, -0.0170491],
+        [-0.0092345, 0.0150436, 0.7521316],
+    ]
+}
+
 /// Build a color space transformation matrix from source RGB to target RGB.
 ///
 /// Given source primaries (src) and target primaries (dst), computes:
@@ -391,7 +404,6 @@ impl IccProfile {
     /// order for GLSL (i.e., `result[i] = sum(matrix[i][j] * input[j])`).
     pub fn srgb_correction_matrix(&self) -> Option<[[f64; 3]; 3]> {
         // ICC profile primaries are ALREADY scaled XYZ columns.
-        // The columns sum to the white point, so no additional scaling is needed.
         let display_to_xyz = [
             [self.primaries[0].x, self.primaries[1].x, self.primaries[2].x],
             [self.primaries[0].y, self.primaries[1].y, self.primaries[2].y],
@@ -400,15 +412,20 @@ impl IccProfile {
         
         let xyz_to_display = invert_matrix(&display_to_xyz)?;
         
-        // Standard sRGB to XYZ (D65) matrix from ICC spec.
+        // Standard sRGB to XYZ (D65) matrix.
         let srgb_to_xyz: [[f64; 3]; 3] = [
             [0.4124564, 0.3575761, 0.1804375],
             [0.2126729, 0.7151522, 0.0721750],
             [0.0193339, 0.1191920, 0.9503041],
         ];
         
-        // First convert sRGB to XYZ, then XYZ to display RGB.
-        Some(multiply_matrices(&xyz_to_display, &srgb_to_xyz))
+        // ICC profiles use D50 white point, but sRGB uses D65.
+        // Apply Bradford chromatic adaptation from D65 to D50.
+        let adapt = bradford_d65_to_d50();
+        let srgb_to_xyz_d50 = multiply_matrices(&adapt, &srgb_to_xyz);
+        
+        // First convert sRGB to XYZ(D50), then XYZ to display RGB.
+        Some(multiply_matrices(&xyz_to_display, &srgb_to_xyz_d50))
     }
     
     /// Build a color correction matrix that maps sRGB colors to BT.2020.
