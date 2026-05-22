@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/src/render_helpers/debug.rs
+/home/kenr/repos/niri/src/render_helpers/effect_buffer.rs
+/home/kenr/repos/niri/src/render_helpers/framebuffer_effect.rs
+/home/kenr/repos/niri/src/render_helpers/gradient_fade_texture.rs
+/home/kenr/repos/niri/src/render_helpers/memory.rs
+/home/kenr/repos/niri/src/render_helpers/mod.rs
+/home/kenr/repos/niri/src/render_helpers/offscreen.rs
+/home/kenr/repos/niri/src/render_helpers/primary_gpu_texture.rs
+/home/kenr/repos/niri/src/render_helpers/render_elements.rs
+/home/kenr/repos/niri/src/render_helpers/renderer.rs
+/home/kenr/repos/niri/src/render_helpers/resize.rs
+/home/kenr/repos/niri/src/render_helpers/resources.rs

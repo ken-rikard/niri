@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/src/handlers/xdg_shell.rs
+/home/kenr/repos/niri/src/input/backend_ext.rs
+/home/kenr/repos/niri/src/input/mod.rs
+/home/kenr/repos/niri/src/input/move_grab.rs
+/home/kenr/repos/niri/src/input/pick_color_grab.rs
+/home/kenr/repos/niri/src/input/pick_window_grab.rs
+/home/kenr/repos/niri/src/input/resize_grab.rs
+/home/kenr/repos/niri/src/input/scroll_swipe_gesture.rs
+/home/kenr/repos/niri/src/input/scroll_tracker.rs
+/home/kenr/repos/niri/src/input/spatial_movement_grab.rs
+/home/kenr/repos/niri/src/input/swipe_tracker.rs
+/home/kenr/repos/niri/src/input/touch_overview_grab.rs

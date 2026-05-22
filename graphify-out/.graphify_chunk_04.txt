@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/docs/wiki/Configuration:-Window-Rules.md
+/home/kenr/repos/niri/docs/wiki/Development:-Animation-Timing.md
+/home/kenr/repos/niri/docs/wiki/Development:-Design-Principles.md
+/home/kenr/repos/niri/docs/wiki/Development:-Developing-niri.md
+/home/kenr/repos/niri/docs/wiki/Development:-Documenting-niri.md
+/home/kenr/repos/niri/docs/wiki/Development:-Fractional-Layout.md
+/home/kenr/repos/niri/docs/wiki/Development:-Redraw-Loop.md
+/home/kenr/repos/niri/docs/wiki/Development:-Releasing-niri.md
+/home/kenr/repos/niri/docs/wiki/Example-systemd-Setup.md
+/home/kenr/repos/niri/docs/wiki/FAQ.md
+/home/kenr/repos/niri/docs/wiki/Floating-Windows.md
+/home/kenr/repos/niri/docs/wiki/Fullscreen-and-Maximize.md

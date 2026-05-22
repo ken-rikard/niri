@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/src/protocols/mod.rs
+/home/kenr/repos/niri/src/protocols/mutter_x11_interop.rs
+/home/kenr/repos/niri/src/protocols/output_management.rs
+/home/kenr/repos/niri/src/protocols/raw.rs
+/home/kenr/repos/niri/src/protocols/screencopy.rs
+/home/kenr/repos/niri/src/protocols/virtual_pointer.rs
+/home/kenr/repos/niri/src/protocols/color_management.rs
+/home/kenr/repos/niri/src/render_helpers/background_effect.rs
+/home/kenr/repos/niri/src/render_helpers/blur.rs
+/home/kenr/repos/niri/src/render_helpers/border.rs
+/home/kenr/repos/niri/src/render_helpers/clipped_surface.rs
+/home/kenr/repos/niri/src/render_helpers/damage.rs

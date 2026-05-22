@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/docs/wiki/Gestures.md
+/home/kenr/repos/niri/docs/wiki/Getting-Started.md
+/home/kenr/repos/niri/docs/wiki/IPC.md
+/home/kenr/repos/niri/docs/wiki/Important-Software.md
+/home/kenr/repos/niri/docs/wiki/Integrating-niri.md
+/home/kenr/repos/niri/docs/wiki/Layer‐Shell-Components.md
+/home/kenr/repos/niri/docs/wiki/Name-and-Logo.md
+/home/kenr/repos/niri/docs/wiki/Nvidia.md
+/home/kenr/repos/niri/docs/wiki/Overview.md
+/home/kenr/repos/niri/docs/wiki/Packaging-niri.md
+/home/kenr/repos/niri/docs/wiki/README.md
+/home/kenr/repos/niri/docs/wiki/Screencasting.md

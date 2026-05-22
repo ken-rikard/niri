@@ -1,0 +1,1407 @@
+{
+  "/home/kenr/repos/niri/build.rs": {
+    "mtime": 1779117300.6512198,
+    "ast_hash": "734058a1b0ddec31e230041bee727af6",
+    "semantic_hash": "734058a1b0ddec31e230041bee727af6"
+  },
+  "/home/kenr/repos/niri/docs/hooks/remove-must-fail.py": {
+    "mtime": 1779117300.6515346,
+    "ast_hash": "f56a8e4e88a45abd281782de9021fb60",
+    "semantic_hash": "f56a8e4e88a45abd281782de9021fb60"
+  },
+  "/home/kenr/repos/niri/docs/hooks/shortcodes.py": {
+    "mtime": 1779117300.6515496,
+    "ast_hash": "2924d6ec210bd247b9ed8eab1c825c5e",
+    "semantic_hash": "2924d6ec210bd247b9ed8eab1c825c5e"
+  },
+  "/home/kenr/repos/niri/niri-config/src/animations.rs": {
+    "mtime": 1779117300.6549952,
+    "ast_hash": "11775c9cc9588b9bca55f165050c39dc",
+    "semantic_hash": "11775c9cc9588b9bca55f165050c39dc"
+  },
+  "/home/kenr/repos/niri/niri-config/src/appearance.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "f9211ebd71b1f5d30d942e0e0a9a80af",
+    "semantic_hash": "f9211ebd71b1f5d30d942e0e0a9a80af"
+  },
+  "/home/kenr/repos/niri/niri-config/src/binds.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "88ab83b2f8f94c487f41d3e56b223b8c",
+    "semantic_hash": "88ab83b2f8f94c487f41d3e56b223b8c"
+  },
+  "/home/kenr/repos/niri/niri-config/src/debug.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "4cc04b55af5e5bb608ef22a3dbe83828",
+    "semantic_hash": "4cc04b55af5e5bb608ef22a3dbe83828"
+  },
+  "/home/kenr/repos/niri/niri-config/src/error.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "388fbee373b6732f0e339a7570d5d866",
+    "semantic_hash": "388fbee373b6732f0e339a7570d5d866"
+  },
+  "/home/kenr/repos/niri/niri-config/src/gestures.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "d527c13fb8c0a99fcf802840b9913216",
+    "semantic_hash": "d527c13fb8c0a99fcf802840b9913216"
+  },
+  "/home/kenr/repos/niri/niri-config/src/input.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "63070f53a17b2ce58620e6e7f7cd894c",
+    "semantic_hash": "63070f53a17b2ce58620e6e7f7cd894c"
+  },
+  "/home/kenr/repos/niri/niri-config/src/layer_rule.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "8f68d779aef24fb2c5ac2ef9d5975559",
+    "semantic_hash": "8f68d779aef24fb2c5ac2ef9d5975559"
+  },
+  "/home/kenr/repos/niri/niri-config/src/layout.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "583341ef0b0369e5ed3fdca59dfa924d",
+    "semantic_hash": "583341ef0b0369e5ed3fdca59dfa924d"
+  },
+  "/home/kenr/repos/niri/niri-config/src/lib.rs": {
+    "mtime": 1779118101.2776177,
+    "ast_hash": "97f83483f78fc5db87277b2b74395a85",
+    "semantic_hash": "97f83483f78fc5db87277b2b74395a85"
+  },
+  "/home/kenr/repos/niri/niri-config/src/macros.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "99b0a683392b098d1c9f299b2b2cc088",
+    "semantic_hash": "99b0a683392b098d1c9f299b2b2cc088"
+  },
+  "/home/kenr/repos/niri/niri-config/src/misc.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "249eda66e72fdaa76cbefde762c01cb2",
+    "semantic_hash": "249eda66e72fdaa76cbefde762c01cb2"
+  },
+  "/home/kenr/repos/niri/niri-config/src/recent_windows.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "4a041f601eea69634525f299f9f38a28",
+    "semantic_hash": "4a041f601eea69634525f299f9f38a28"
+  },
+  "/home/kenr/repos/niri/niri-config/src/utils.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "c91f93087be85c2340b72270134b86d5",
+    "semantic_hash": "c91f93087be85c2340b72270134b86d5"
+  },
+  "/home/kenr/repos/niri/niri-config/src/window_rule.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "fba3eed18ce8d704757304b2cd11acac",
+    "semantic_hash": "fba3eed18ce8d704757304b2cd11acac"
+  },
+  "/home/kenr/repos/niri/niri-config/src/workspace.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "f08eb1d81cd1dbb2d4fb4f28316b7a58",
+    "semantic_hash": "f08eb1d81cd1dbb2d4fb4f28316b7a58"
+  },
+  "/home/kenr/repos/niri/niri-config/src/output.rs": {
+    "mtime": 1779389218.1580448,
+    "ast_hash": "6664b875a35a0616c2ad02868ed5e69d",
+    "semantic_hash": "6664b875a35a0616c2ad02868ed5e69d"
+  },
+  "/home/kenr/repos/niri/niri-config/src/utils/merge_with.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "d29a5629aa40d231ea37afcda1ddc956",
+    "semantic_hash": "d29a5629aa40d231ea37afcda1ddc956"
+  },
+  "/home/kenr/repos/niri/niri-config/tests/wiki-parses.rs": {
+    "mtime": 1779117300.6550248,
+    "ast_hash": "afb83aab79425f77abdd69b6768c996c",
+    "semantic_hash": "afb83aab79425f77abdd69b6768c996c"
+  },
+  "/home/kenr/repos/niri/niri-ipc/src/socket.rs": {
+    "mtime": 1779117300.655466,
+    "ast_hash": "ff864d42e4fe6f131ec8258a89b0347d",
+    "semantic_hash": "ff864d42e4fe6f131ec8258a89b0347d"
+  },
+  "/home/kenr/repos/niri/niri-ipc/src/state.rs": {
+    "mtime": 1779117300.655466,
+    "ast_hash": "fb5eafeb827b0c1e452ee3dbac4f1852",
+    "semantic_hash": "fb5eafeb827b0c1e452ee3dbac4f1852"
+  },
+  "/home/kenr/repos/niri/niri-ipc/src/lib.rs": {
+    "mtime": 1779401283.462303,
+    "ast_hash": "da2535b4d5f5e7a377fa51c68dada20c",
+    "semantic_hash": "da2535b4d5f5e7a377fa51c68dada20c"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/main.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "1286b11aaf53d4c547e51bd5e9a64e1d",
+    "semantic_hash": "1286b11aaf53d4c547e51bd5e9a64e1d"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/smithay_view.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "79388768a5e38ad15da348074faa34f5",
+    "semantic_hash": "79388768a5e38ad15da348074faa34f5"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/test_window.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "5604a25102cc9b2a2ec7f579daae5612",
+    "semantic_hash": "5604a25102cc9b2a2ec7f579daae5612"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_angle.rs": {
+    "mtime": 1779117300.6555398,
+    "ast_hash": "6b1fb17915c1dd50c2ead71818723646",
+    "semantic_hash": "6b1fb17915c1dd50c2ead71818723646"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_area.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "9b356288d288bc247e3814d433cd1f7d",
+    "semantic_hash": "9b356288d288bc247e3814d433cd1f7d"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklab.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "9eb8b50b5d2082abf1f75fb8e14c0ec1",
+    "semantic_hash": "9eb8b50b5d2082abf1f75fb8e14c0ec1"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklab_alpha.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "50569fe0d622f939667861733ce399a2",
+    "semantic_hash": "50569fe0d622f939667861733ce399a2"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklch_alpha.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "5dc9194d02760cebd480a24cb315bf4d",
+    "semantic_hash": "5dc9194d02760cebd480a24cb315bf4d"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklch_decreasing.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "56c0e3712ba367a038aa52046010030e",
+    "semantic_hash": "56c0e3712ba367a038aa52046010030e"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklch_increasing.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "a4f3cff4346526a1b774b3bdf74e88f1",
+    "semantic_hash": "a4f3cff4346526a1b774b3bdf74e88f1"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklch_longer.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "801037779677bd7d1fb843fe52409bd6",
+    "semantic_hash": "801037779677bd7d1fb843fe52409bd6"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklch_shorter.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "93ffb4e663462afb80c226dce930de35",
+    "semantic_hash": "93ffb4e663462afb80c226dce930de35"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_srgb.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "0dce35ff7d688d512da17a5d790c5d63",
+    "semantic_hash": "0dce35ff7d688d512da17a5d790c5d63"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_srgb_alpha.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "5e4369e51a3a16dc916f9f5e8f3aba5a",
+    "semantic_hash": "5e4369e51a3a16dc916f9f5e8f3aba5a"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_srgblinear.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "1284120d3f425a336436d06bd12133f0",
+    "semantic_hash": "1284120d3f425a336436d06bd12133f0"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_srgblinear_alpha.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "cd103087e3da93efe5331d0c2e6119a6",
+    "semantic_hash": "cd103087e3da93efe5331d0c2e6119a6"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/layout.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "ac13240ba1fcef720be396a9b8c29923",
+    "semantic_hash": "ac13240ba1fcef720be396a9b8c29923"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/mod.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "66ad724f49b5cdb17fc11b0fd7b824ab",
+    "semantic_hash": "66ad724f49b5cdb17fc11b0fd7b824ab"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/tile.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "4a83e74ff81cb0890458607d8513eb05",
+    "semantic_hash": "4a83e74ff81cb0890458607d8513eb05"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/src/cases/window.rs": {
+    "mtime": 1779117300.6555555,
+    "ast_hash": "49e498714f0c689e72f776b42514d6fc",
+    "semantic_hash": "49e498714f0c689e72f776b42514d6fc"
+  },
+  "/home/kenr/repos/niri/resources/niri-session": {
+    "mtime": 1779117300.6558256,
+    "ast_hash": "c43d8fb57e9c0144fca72904ffb82122",
+    "semantic_hash": "c43d8fb57e9c0144fca72904ffb82122"
+  },
+  "/home/kenr/repos/niri/src/a11y.rs": {
+    "mtime": 1779117300.6558256,
+    "ast_hash": "2915800f91de4f013600862797c5ea8e",
+    "semantic_hash": "2915800f91de4f013600862797c5ea8e"
+  },
+  "/home/kenr/repos/niri/src/cli.rs": {
+    "mtime": 1779117300.6560004,
+    "ast_hash": "63e08863f14ed4dfcce1c8dcbedb3a48",
+    "semantic_hash": "63e08863f14ed4dfcce1c8dcbedb3a48"
+  },
+  "/home/kenr/repos/niri/src/cursor.rs": {
+    "mtime": 1779117300.6560004,
+    "ast_hash": "fae549caedaf58153165433797d820a4",
+    "semantic_hash": "fae549caedaf58153165433797d820a4"
+  },
+  "/home/kenr/repos/niri/src/frame_clock.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "13554df8b0bdf9b6ef89b5cc4e281ef7",
+    "semantic_hash": "13554df8b0bdf9b6ef89b5cc4e281ef7"
+  },
+  "/home/kenr/repos/niri/src/main.rs": {
+    "mtime": 1779117300.6575718,
+    "ast_hash": "5566d2d0cc9e356148062c7501c03e5e",
+    "semantic_hash": "5566d2d0cc9e356148062c7501c03e5e"
+  },
+  "/home/kenr/repos/niri/src/rubber_band.rs": {
+    "mtime": 1779117300.6584704,
+    "ast_hash": "494f6b90b43d416f9a533d7718287f99",
+    "semantic_hash": "494f6b90b43d416f9a533d7718287f99"
+  },
+  "/home/kenr/repos/niri/src/lib.rs": {
+    "mtime": 1779388101.1953514,
+    "ast_hash": "bd9b758faa62d3d94bb33289519c574b",
+    "semantic_hash": "bd9b758faa62d3d94bb33289519c574b"
+  },
+  "/home/kenr/repos/niri/src/niri.rs": {
+    "mtime": 1779402152.7839162,
+    "ast_hash": "eca4004277e16ecd70074a27773de35d",
+    "semantic_hash": "eca4004277e16ecd70074a27773de35d"
+  },
+  "/home/kenr/repos/niri/src/animation/bezier.rs": {
+    "mtime": 1779117300.6559198,
+    "ast_hash": "9f7747483904e0e021fcce30dc13adeb",
+    "semantic_hash": "9f7747483904e0e021fcce30dc13adeb"
+  },
+  "/home/kenr/repos/niri/src/animation/clock.rs": {
+    "mtime": 1779117300.6559334,
+    "ast_hash": "d81e4efa2af701a168bf5ba93d818676",
+    "semantic_hash": "d81e4efa2af701a168bf5ba93d818676"
+  },
+  "/home/kenr/repos/niri/src/animation/mod.rs": {
+    "mtime": 1779117300.6559334,
+    "ast_hash": "574398d9c3f0b76b30e7e583496fe4d4",
+    "semantic_hash": "574398d9c3f0b76b30e7e583496fe4d4"
+  },
+  "/home/kenr/repos/niri/src/animation/spring.rs": {
+    "mtime": 1779117300.6559334,
+    "ast_hash": "4c4215aa9bf89e2bc71d06b33bf68009",
+    "semantic_hash": "4c4215aa9bf89e2bc71d06b33bf68009"
+  },
+  "/home/kenr/repos/niri/src/backend/headless.rs": {
+    "mtime": 1779135811.493223,
+    "ast_hash": "fd4b3578015b8f1bb42acffd5e273143",
+    "semantic_hash": "fd4b3578015b8f1bb42acffd5e273143"
+  },
+  "/home/kenr/repos/niri/src/backend/mod.rs": {
+    "mtime": 1779117300.6560004,
+    "ast_hash": "1a7d28bdaba3356a5246c6acaa1c74a6",
+    "semantic_hash": "1a7d28bdaba3356a5246c6acaa1c74a6"
+  },
+  "/home/kenr/repos/niri/src/backend/winit.rs": {
+    "mtime": 1779135804.3310282,
+    "ast_hash": "6bb712f3f32901adb48bfc69fc1fc898",
+    "semantic_hash": "6bb712f3f32901adb48bfc69fc1fc898"
+  },
+  "/home/kenr/repos/niri/src/backend/tty.rs": {
+    "mtime": 1779403747.7277873,
+    "ast_hash": "d8559b819eb9fd9b466dcae52a332e28",
+    "semantic_hash": "d8559b819eb9fd9b466dcae52a332e28"
+  },
+  "/home/kenr/repos/niri/src/dbus/freedesktop_a11y.rs": {
+    "mtime": 1779117300.6560004,
+    "ast_hash": "00c03412c5203e45039d172008f6810e",
+    "semantic_hash": "00c03412c5203e45039d172008f6810e"
+  },
+  "/home/kenr/repos/niri/src/dbus/freedesktop_locale1.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "bee16c78fcf274785fa6a00defc8dec0",
+    "semantic_hash": "bee16c78fcf274785fa6a00defc8dec0"
+  },
+  "/home/kenr/repos/niri/src/dbus/freedesktop_login1.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "a4d725d32baed931d51da97fa01e24b4",
+    "semantic_hash": "a4d725d32baed931d51da97fa01e24b4"
+  },
+  "/home/kenr/repos/niri/src/dbus/freedesktop_screensaver.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "8ea604ff8ab8db33db3a753f3153428b",
+    "semantic_hash": "8ea604ff8ab8db33db3a753f3153428b"
+  },
+  "/home/kenr/repos/niri/src/dbus/gnome_shell_introspect.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "9a6dda57c5da0e00b8caa32767f2c1fe",
+    "semantic_hash": "9a6dda57c5da0e00b8caa32767f2c1fe"
+  },
+  "/home/kenr/repos/niri/src/dbus/gnome_shell_screenshot.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "8aa54b1f85c6625de9d9e644097c23c1",
+    "semantic_hash": "8aa54b1f85c6625de9d9e644097c23c1"
+  },
+  "/home/kenr/repos/niri/src/dbus/mod.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "e29384b2feb12d41d815886bf1988a30",
+    "semantic_hash": "e29384b2feb12d41d815886bf1988a30"
+  },
+  "/home/kenr/repos/niri/src/dbus/mutter_display_config.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "b34945787f73317d4f581e65532cdfd4",
+    "semantic_hash": "b34945787f73317d4f581e65532cdfd4"
+  },
+  "/home/kenr/repos/niri/src/dbus/mutter_screen_cast.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "547de6f12991ea8dae5a1a9f7ce6e30f",
+    "semantic_hash": "547de6f12991ea8dae5a1a9f7ce6e30f"
+  },
+  "/home/kenr/repos/niri/src/dbus/mutter_service_channel.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "417bd4dbc60bede92c525210402931cb",
+    "semantic_hash": "417bd4dbc60bede92c525210402931cb"
+  },
+  "/home/kenr/repos/niri/src/handlers/background_effect.rs": {
+    "mtime": 1779117300.6562111,
+    "ast_hash": "a137645016fd72cc09d150ee878d2a1c",
+    "semantic_hash": "a137645016fd72cc09d150ee878d2a1c"
+  },
+  "/home/kenr/repos/niri/src/handlers/compositor.rs": {
+    "mtime": 1779117300.6563604,
+    "ast_hash": "5b9d54acf805f58518a5d403b182f507",
+    "semantic_hash": "5b9d54acf805f58518a5d403b182f507"
+  },
+  "/home/kenr/repos/niri/src/handlers/layer_shell.rs": {
+    "mtime": 1779117300.6563604,
+    "ast_hash": "d9a494d22404387673b4ccd783bf54c6",
+    "semantic_hash": "d9a494d22404387673b4ccd783bf54c6"
+  },
+  "/home/kenr/repos/niri/src/handlers/mod.rs": {
+    "mtime": 1779117956.3034906,
+    "ast_hash": "178df4003ddd020c9ccb5d1658967957",
+    "semantic_hash": "178df4003ddd020c9ccb5d1658967957"
+  },
+  "/home/kenr/repos/niri/src/handlers/xdg_shell.rs": {
+    "mtime": 1779117300.6563604,
+    "ast_hash": "0f073a1393a50189867f691f37c780e4",
+    "semantic_hash": "0f073a1393a50189867f691f37c780e4"
+  },
+  "/home/kenr/repos/niri/src/input/backend_ext.rs": {
+    "mtime": 1779117300.6563604,
+    "ast_hash": "d91bd72a27eec8006aee668dd901209b",
+    "semantic_hash": "d91bd72a27eec8006aee668dd901209b"
+  },
+  "/home/kenr/repos/niri/src/input/mod.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "e1ecf1cdf399a2110d130410efe3a02e",
+    "semantic_hash": "e1ecf1cdf399a2110d130410efe3a02e"
+  },
+  "/home/kenr/repos/niri/src/input/move_grab.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "31c09b0550289c2b9d3727743a516165",
+    "semantic_hash": "31c09b0550289c2b9d3727743a516165"
+  },
+  "/home/kenr/repos/niri/src/input/pick_color_grab.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "4890c5744accd786f3f2b4b813ff2840",
+    "semantic_hash": "4890c5744accd786f3f2b4b813ff2840"
+  },
+  "/home/kenr/repos/niri/src/input/pick_window_grab.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "3710d2780c36f1872f4e52f0f237b783",
+    "semantic_hash": "3710d2780c36f1872f4e52f0f237b783"
+  },
+  "/home/kenr/repos/niri/src/input/resize_grab.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "4ed23ae7111ce120009a14505529f2ac",
+    "semantic_hash": "4ed23ae7111ce120009a14505529f2ac"
+  },
+  "/home/kenr/repos/niri/src/input/scroll_swipe_gesture.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "a1b23df1cfcfb68acb79228cc2b11749",
+    "semantic_hash": "a1b23df1cfcfb68acb79228cc2b11749"
+  },
+  "/home/kenr/repos/niri/src/input/scroll_tracker.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "27b4d55f7b2acce0dd965d1e9113537d",
+    "semantic_hash": "27b4d55f7b2acce0dd965d1e9113537d"
+  },
+  "/home/kenr/repos/niri/src/input/spatial_movement_grab.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "73bc2e609766ad45c60d53f3e1a93f9c",
+    "semantic_hash": "73bc2e609766ad45c60d53f3e1a93f9c"
+  },
+  "/home/kenr/repos/niri/src/input/swipe_tracker.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "c4bcc33a6380548bd84665df5569dd9a",
+    "semantic_hash": "c4bcc33a6380548bd84665df5569dd9a"
+  },
+  "/home/kenr/repos/niri/src/input/touch_overview_grab.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "4de390739b777cedc2ad62b8a081c49f",
+    "semantic_hash": "4de390739b777cedc2ad62b8a081c49f"
+  },
+  "/home/kenr/repos/niri/src/input/touch_resize_grab.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "c45d65a6b15686173c68da2804d4aa26",
+    "semantic_hash": "c45d65a6b15686173c68da2804d4aa26"
+  },
+  "/home/kenr/repos/niri/src/ipc/client.rs": {
+    "mtime": 1779117300.6565204,
+    "ast_hash": "b2e119bbda6fbfb4f53ee1a898b19fdc",
+    "semantic_hash": "b2e119bbda6fbfb4f53ee1a898b19fdc"
+  },
+  "/home/kenr/repos/niri/src/ipc/mod.rs": {
+    "mtime": 1779117300.6568367,
+    "ast_hash": "2b5ce1acb5b408bf2aee68a476e73d57",
+    "semantic_hash": "2b5ce1acb5b408bf2aee68a476e73d57"
+  },
+  "/home/kenr/repos/niri/src/ipc/server.rs": {
+    "mtime": 1779117300.6568367,
+    "ast_hash": "b466729f4283cc76464028256db64dea",
+    "semantic_hash": "b466729f4283cc76464028256db64dea"
+  },
+  "/home/kenr/repos/niri/src/layer/mapped.rs": {
+    "mtime": 1779117300.6568367,
+    "ast_hash": "ad4c584ec0eb142922eec72704628350",
+    "semantic_hash": "ad4c584ec0eb142922eec72704628350"
+  },
+  "/home/kenr/repos/niri/src/layer/mod.rs": {
+    "mtime": 1779117300.656941,
+    "ast_hash": "4df9d2951adf4a9e3830661bd7fb0e65",
+    "semantic_hash": "4df9d2951adf4a9e3830661bd7fb0e65"
+  },
+  "/home/kenr/repos/niri/src/layout/closing_window.rs": {
+    "mtime": 1779117300.656941,
+    "ast_hash": "8c93b9e0a9f5d09962c8162eb574ab9d",
+    "semantic_hash": "8c93b9e0a9f5d09962c8162eb574ab9d"
+  },
+  "/home/kenr/repos/niri/src/layout/floating.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "946f8697b5447dc18b32aa9e1702c486",
+    "semantic_hash": "946f8697b5447dc18b32aa9e1702c486"
+  },
+  "/home/kenr/repos/niri/src/layout/focus_ring.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "48ebfc830d1989a8b080ed850a5747f7",
+    "semantic_hash": "48ebfc830d1989a8b080ed850a5747f7"
+  },
+  "/home/kenr/repos/niri/src/layout/insert_hint_element.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "d48cedf6fb663222e76bbb6e763e2b5a",
+    "semantic_hash": "d48cedf6fb663222e76bbb6e763e2b5a"
+  },
+  "/home/kenr/repos/niri/src/layout/mod.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "5b59be331f730d928840a967c9d93990",
+    "semantic_hash": "5b59be331f730d928840a967c9d93990"
+  },
+  "/home/kenr/repos/niri/src/layout/monitor.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "325c260df00d80aff1a1de3c1b9ac41c",
+    "semantic_hash": "325c260df00d80aff1a1de3c1b9ac41c"
+  },
+  "/home/kenr/repos/niri/src/layout/opening_window.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "1cc6d383740a96ee2b70a4d0961267ef",
+    "semantic_hash": "1cc6d383740a96ee2b70a4d0961267ef"
+  },
+  "/home/kenr/repos/niri/src/layout/scrolling.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "de621dae2afd254034ec22534d1f7db4",
+    "semantic_hash": "de621dae2afd254034ec22534d1f7db4"
+  },
+  "/home/kenr/repos/niri/src/layout/shadow.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "17cf5226f2cfc40659d2a538621cbb05",
+    "semantic_hash": "17cf5226f2cfc40659d2a538621cbb05"
+  },
+  "/home/kenr/repos/niri/src/layout/tab_indicator.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "5e914d66e4c3230187ef28424416a9b3",
+    "semantic_hash": "5e914d66e4c3230187ef28424416a9b3"
+  },
+  "/home/kenr/repos/niri/src/layout/tests.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "89e73a1f1919599a937a3e27c125e8fb",
+    "semantic_hash": "89e73a1f1919599a937a3e27c125e8fb"
+  },
+  "/home/kenr/repos/niri/src/layout/tile.rs": {
+    "mtime": 1779117300.6575718,
+    "ast_hash": "20350d6b538c6dd60d941c604498c60d",
+    "semantic_hash": "20350d6b538c6dd60d941c604498c60d"
+  },
+  "/home/kenr/repos/niri/src/layout/workspace.rs": {
+    "mtime": 1779117300.6575718,
+    "ast_hash": "3115d5b073a86f0811c4fd496279019c",
+    "semantic_hash": "3115d5b073a86f0811c4fd496279019c"
+  },
+  "/home/kenr/repos/niri/src/layout/tests/animations.rs": {
+    "mtime": 1779117300.6569746,
+    "ast_hash": "f89ca51cb285dfcfcd7ba1c2c50b7566",
+    "semantic_hash": "f89ca51cb285dfcfcd7ba1c2c50b7566"
+  },
+  "/home/kenr/repos/niri/src/layout/tests/fullscreen.rs": {
+    "mtime": 1779117300.6575718,
+    "ast_hash": "1d27212b04a8dba9374d5a73434e0236",
+    "semantic_hash": "1d27212b04a8dba9374d5a73434e0236"
+  },
+  "/home/kenr/repos/niri/src/protocols/ext_workspace.rs": {
+    "mtime": 1779117300.6575718,
+    "ast_hash": "54260213069ee19c9b602e2bee5cdbfc",
+    "semantic_hash": "54260213069ee19c9b602e2bee5cdbfc"
+  },
+  "/home/kenr/repos/niri/src/protocols/foreign_toplevel.rs": {
+    "mtime": 1779117300.6579916,
+    "ast_hash": "40bb986f9541c242e326af84507f8d9e",
+    "semantic_hash": "40bb986f9541c242e326af84507f8d9e"
+  },
+  "/home/kenr/repos/niri/src/protocols/gamma_control.rs": {
+    "mtime": 1779117300.6579916,
+    "ast_hash": "d264dfdc8c8d0e3bead280cb57526333",
+    "semantic_hash": "d264dfdc8c8d0e3bead280cb57526333"
+  },
+  "/home/kenr/repos/niri/src/protocols/mod.rs": {
+    "mtime": 1779117713.5425775,
+    "ast_hash": "9e99841fa35b58aca8dc5eafad22e055",
+    "semantic_hash": "9e99841fa35b58aca8dc5eafad22e055"
+  },
+  "/home/kenr/repos/niri/src/protocols/mutter_x11_interop.rs": {
+    "mtime": 1779117300.6579916,
+    "ast_hash": "1bffbee2f783038ebab34567804307bc",
+    "semantic_hash": "1bffbee2f783038ebab34567804307bc"
+  },
+  "/home/kenr/repos/niri/src/protocols/output_management.rs": {
+    "mtime": 1779117300.6579916,
+    "ast_hash": "9956d8f55464024877b21e26971280e7",
+    "semantic_hash": "9956d8f55464024877b21e26971280e7"
+  },
+  "/home/kenr/repos/niri/src/protocols/raw.rs": {
+    "mtime": 1779117300.6579916,
+    "ast_hash": "ddc8f3bf97bb8818825cfc6c71e8343b",
+    "semantic_hash": "ddc8f3bf97bb8818825cfc6c71e8343b"
+  },
+  "/home/kenr/repos/niri/src/protocols/screencopy.rs": {
+    "mtime": 1779117300.6579916,
+    "ast_hash": "52dbe80e01de69024425495d2a2b957d",
+    "semantic_hash": "52dbe80e01de69024425495d2a2b957d"
+  },
+  "/home/kenr/repos/niri/src/protocols/virtual_pointer.rs": {
+    "mtime": 1779117300.6579916,
+    "ast_hash": "55758b1639e390f54b7c368375c2a897",
+    "semantic_hash": "55758b1639e390f54b7c368375c2a897"
+  },
+  "/home/kenr/repos/niri/src/protocols/color_management.rs": {
+    "mtime": 1779386544.2748847,
+    "ast_hash": "0d650f2de3cb25c177a9ccb58ed03702",
+    "semantic_hash": "0d650f2de3cb25c177a9ccb58ed03702"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/background_effect.rs": {
+    "mtime": 1779117300.6579916,
+    "ast_hash": "d10f4c7d34b73c1f86745ca3e2941549",
+    "semantic_hash": "d10f4c7d34b73c1f86745ca3e2941549"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/blur.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "4791f08d9462626ea6bd9c4b7466f7e6",
+    "semantic_hash": "4791f08d9462626ea6bd9c4b7466f7e6"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/border.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "989d40688cb8c9af517f4dab80420ff6",
+    "semantic_hash": "989d40688cb8c9af517f4dab80420ff6"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/clipped_surface.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "3b456bbe7e4095f24ed8bac42ddd2fd4",
+    "semantic_hash": "3b456bbe7e4095f24ed8bac42ddd2fd4"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/damage.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "284a4d4c96a9512868938ce593078116",
+    "semantic_hash": "284a4d4c96a9512868938ce593078116"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/debug.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "18dc812206e819c4a97ecc3ce47663b3",
+    "semantic_hash": "18dc812206e819c4a97ecc3ce47663b3"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/effect_buffer.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "37a09fa90cdbefd90a7416f8bf13473c",
+    "semantic_hash": "37a09fa90cdbefd90a7416f8bf13473c"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/framebuffer_effect.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "55d4fcbd6aa3b2b769d924795119954a",
+    "semantic_hash": "55d4fcbd6aa3b2b769d924795119954a"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/gradient_fade_texture.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "572cd8608a8532f8d6871d9dec0b45b1",
+    "semantic_hash": "572cd8608a8532f8d6871d9dec0b45b1"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/memory.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "4b993f14df5046e5cdc59198c9e2f20f",
+    "semantic_hash": "4b993f14df5046e5cdc59198c9e2f20f"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/mod.rs": {
+    "mtime": 1779136224.3905985,
+    "ast_hash": "b7b590bf39fb54fd6a9013100675dc2d",
+    "semantic_hash": "b7b590bf39fb54fd6a9013100675dc2d"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/offscreen.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "a600ac3518f16d6d148ee8d66e85b645",
+    "semantic_hash": "a600ac3518f16d6d148ee8d66e85b645"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/primary_gpu_texture.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "1c1cd1d27fa19edd48147d7ef91c9a0c",
+    "semantic_hash": "1c1cd1d27fa19edd48147d7ef91c9a0c"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/render_elements.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "fe88433cdf30c857a8b7b00a8b612717",
+    "semantic_hash": "fe88433cdf30c857a8b7b00a8b612717"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/renderer.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "e9c2e2dcc5c30d28a80532f750fc4419",
+    "semantic_hash": "e9c2e2dcc5c30d28a80532f750fc4419"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/resize.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "61df14581baf5d1f46a3ca0d228a5be0",
+    "semantic_hash": "61df14581baf5d1f46a3ca0d228a5be0"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/resources.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "9738cd767383fa25ee3543c4a36043fd",
+    "semantic_hash": "9738cd767383fa25ee3543c4a36043fd"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/shader_element.rs": {
+    "mtime": 1779117300.6581676,
+    "ast_hash": "c081e2ea779f0bd1a458f121cf2f54fe",
+    "semantic_hash": "c081e2ea779f0bd1a458f121cf2f54fe"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/shadow.rs": {
+    "mtime": 1779117300.6584704,
+    "ast_hash": "69c18afe9ace62f701d2cbe2aa0741d5",
+    "semantic_hash": "69c18afe9ace62f701d2cbe2aa0741d5"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/snapshot.rs": {
+    "mtime": 1779117300.6584704,
+    "ast_hash": "c04bff29d4af799ebbb86caa1f0d28c7",
+    "semantic_hash": "c04bff29d4af799ebbb86caa1f0d28c7"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/solid_color.rs": {
+    "mtime": 1779117300.6584704,
+    "ast_hash": "3dfa97c80c0adffad12242f032c67510",
+    "semantic_hash": "3dfa97c80c0adffad12242f032c67510"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/surface.rs": {
+    "mtime": 1779117300.6584704,
+    "ast_hash": "5e97075e8647d3c35d8091d6d7e84b6f",
+    "semantic_hash": "5e97075e8647d3c35d8091d6d7e84b6f"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/xray.rs": {
+    "mtime": 1779117300.6584704,
+    "ast_hash": "021373e56d440eb4fce447f05ed8fc31",
+    "semantic_hash": "021373e56d440eb4fce447f05ed8fc31"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/texture.rs": {
+    "mtime": 1779235199.0943606,
+    "ast_hash": "6214dd74dbc632d0fe42e2856347b300",
+    "semantic_hash": "6214dd74dbc632d0fe42e2856347b300"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/hdr_output.rs": {
+    "mtime": 1779388101.1953514,
+    "ast_hash": "71df5dfbecd5523096ca32c43155b8bc",
+    "semantic_hash": "71df5dfbecd5523096ca32c43155b8bc"
+  },
+  "/home/kenr/repos/niri/src/render_helpers/shaders/mod.rs": {
+    "mtime": 1779388101.1953514,
+    "ast_hash": "7d76f0bc40a104608ebab1a4be8b345f",
+    "semantic_hash": "7d76f0bc40a104608ebab1a4be8b345f"
+  },
+  "/home/kenr/repos/niri/src/screencasting/mod.rs": {
+    "mtime": 1779117300.6584704,
+    "ast_hash": "1bff5f3a2b3989cbc071c10d39b37eba",
+    "semantic_hash": "1bff5f3a2b3989cbc071c10d39b37eba"
+  },
+  "/home/kenr/repos/niri/src/screencasting/pw_utils.rs": {
+    "mtime": 1779117300.6587543,
+    "ast_hash": "0fb58d2a67b80e39e689ec199ddb8d4c",
+    "semantic_hash": "0fb58d2a67b80e39e689ec199ddb8d4c"
+  },
+  "/home/kenr/repos/niri/src/tests/animations.rs": {
+    "mtime": 1779117300.6587543,
+    "ast_hash": "f9b2b045b07d0d010a2a4e4b6556ea9c",
+    "semantic_hash": "f9b2b045b07d0d010a2a4e4b6556ea9c"
+  },
+  "/home/kenr/repos/niri/src/tests/client.rs": {
+    "mtime": 1779117300.658837,
+    "ast_hash": "d42b90156c72a14773999518b823def9",
+    "semantic_hash": "d42b90156c72a14773999518b823def9"
+  },
+  "/home/kenr/repos/niri/src/tests/fixture.rs": {
+    "mtime": 1779117300.658837,
+    "ast_hash": "ef587b25a92a0025b916cd0126aecf94",
+    "semantic_hash": "ef587b25a92a0025b916cd0126aecf94"
+  },
+  "/home/kenr/repos/niri/src/tests/floating.rs": {
+    "mtime": 1779117300.658837,
+    "ast_hash": "bc6eece9f596850c52f4f98037ad0450",
+    "semantic_hash": "bc6eece9f596850c52f4f98037ad0450"
+  },
+  "/home/kenr/repos/niri/src/tests/fullscreen.rs": {
+    "mtime": 1779117300.658837,
+    "ast_hash": "ba4e409a53e86ace8f2daad01f87b830",
+    "semantic_hash": "ba4e409a53e86ace8f2daad01f87b830"
+  },
+  "/home/kenr/repos/niri/src/tests/layer_shell.rs": {
+    "mtime": 1779117300.658837,
+    "ast_hash": "47dcd8a0910768dc09c542ac447a8302",
+    "semantic_hash": "47dcd8a0910768dc09c542ac447a8302"
+  },
+  "/home/kenr/repos/niri/src/tests/mod.rs": {
+    "mtime": 1779117300.658837,
+    "ast_hash": "e366c210f8dbe6b2d860732a1defdeb6",
+    "semantic_hash": "e366c210f8dbe6b2d860732a1defdeb6"
+  },
+  "/home/kenr/repos/niri/src/tests/remove_output.rs": {
+    "mtime": 1779117300.658837,
+    "ast_hash": "c3ba3b2c30f5c3dc332b8a74537c4dc4",
+    "semantic_hash": "c3ba3b2c30f5c3dc332b8a74537c4dc4"
+  },
+  "/home/kenr/repos/niri/src/tests/server.rs": {
+    "mtime": 1779117300.658837,
+    "ast_hash": "7e7775c27177bad33a853486c0be8947",
+    "semantic_hash": "7e7775c27177bad33a853486c0be8947"
+  },
+  "/home/kenr/repos/niri/src/tests/transactions.rs": {
+    "mtime": 1779117300.7098765,
+    "ast_hash": "06b5750c00bc4450b3f13ef47a359137",
+    "semantic_hash": "06b5750c00bc4450b3f13ef47a359137"
+  },
+  "/home/kenr/repos/niri/src/tests/window_opening.rs": {
+    "mtime": 1779117300.7098765,
+    "ast_hash": "f0b143af5c7fe1c9773987dcaf398ae9",
+    "semantic_hash": "f0b143af5c7fe1c9773987dcaf398ae9"
+  },
+  "/home/kenr/repos/niri/src/ui/config_error_notification.rs": {
+    "mtime": 1779117300.7098765,
+    "ast_hash": "27628e287089f0859573a0b68e65a6a8",
+    "semantic_hash": "27628e287089f0859573a0b68e65a6a8"
+  },
+  "/home/kenr/repos/niri/src/ui/exit_confirm_dialog.rs": {
+    "mtime": 1779117300.7113416,
+    "ast_hash": "7d89720181ac755a9dbd5cb8c56929e6",
+    "semantic_hash": "7d89720181ac755a9dbd5cb8c56929e6"
+  },
+  "/home/kenr/repos/niri/src/ui/hotkey_overlay.rs": {
+    "mtime": 1779117300.7113416,
+    "ast_hash": "5657e1aa2a162fd11be86da56ad4ad64",
+    "semantic_hash": "5657e1aa2a162fd11be86da56ad4ad64"
+  },
+  "/home/kenr/repos/niri/src/ui/mod.rs": {
+    "mtime": 1779117300.7113416,
+    "ast_hash": "7dd7f463f5de3ed5a3c4af3fc7d0bb6a",
+    "semantic_hash": "7dd7f463f5de3ed5a3c4af3fc7d0bb6a"
+  },
+  "/home/kenr/repos/niri/src/ui/mru.rs": {
+    "mtime": 1779117300.7113416,
+    "ast_hash": "344432dae3f2e18946bbcfc26d865a1e",
+    "semantic_hash": "344432dae3f2e18946bbcfc26d865a1e"
+  },
+  "/home/kenr/repos/niri/src/ui/screen_transition.rs": {
+    "mtime": 1779117300.7113416,
+    "ast_hash": "c810d7120da3af318c9eddcc0ff09040",
+    "semantic_hash": "c810d7120da3af318c9eddcc0ff09040"
+  },
+  "/home/kenr/repos/niri/src/ui/screenshot_ui.rs": {
+    "mtime": 1779117300.7113416,
+    "ast_hash": "e9059e4d80864aa1f74a1a82110a5d56",
+    "semantic_hash": "e9059e4d80864aa1f74a1a82110a5d56"
+  },
+  "/home/kenr/repos/niri/src/ui/mru/tests.rs": {
+    "mtime": 1779117300.7113416,
+    "ast_hash": "c29376d80990b1a8c16f46873e2cfbbf",
+    "semantic_hash": "c29376d80990b1a8c16f46873e2cfbbf"
+  },
+  "/home/kenr/repos/niri/src/utils/id.rs": {
+    "mtime": 1779117300.7113416,
+    "ast_hash": "e0718963ff1e0905b6ad0bbc736c08a2",
+    "semantic_hash": "e0718963ff1e0905b6ad0bbc736c08a2"
+  },
+  "/home/kenr/repos/niri/src/utils/mod.rs": {
+    "mtime": 1779117300.7115633,
+    "ast_hash": "d5eb850033533c0046b9e4b67a6dfbb6",
+    "semantic_hash": "d5eb850033533c0046b9e4b67a6dfbb6"
+  },
+  "/home/kenr/repos/niri/src/utils/region.rs": {
+    "mtime": 1779117300.7115633,
+    "ast_hash": "b061783a12d539b49b30a4abc54d9281",
+    "semantic_hash": "b061783a12d539b49b30a4abc54d9281"
+  },
+  "/home/kenr/repos/niri/src/utils/scale.rs": {
+    "mtime": 1779117300.7115633,
+    "ast_hash": "910a3c489dcf09ad39a2e9caf3822dec",
+    "semantic_hash": "910a3c489dcf09ad39a2e9caf3822dec"
+  },
+  "/home/kenr/repos/niri/src/utils/signals.rs": {
+    "mtime": 1779117300.7115633,
+    "ast_hash": "d3c04624ddd96d0019ab3f13a31fcaa2",
+    "semantic_hash": "d3c04624ddd96d0019ab3f13a31fcaa2"
+  },
+  "/home/kenr/repos/niri/src/utils/spawning.rs": {
+    "mtime": 1779117300.7115633,
+    "ast_hash": "58f8a79403afd2dca3c549fa6646114e",
+    "semantic_hash": "58f8a79403afd2dca3c549fa6646114e"
+  },
+  "/home/kenr/repos/niri/src/utils/transaction.rs": {
+    "mtime": 1779117300.7115633,
+    "ast_hash": "82fe712d0c3c8ca1a33609289a2264ee",
+    "semantic_hash": "82fe712d0c3c8ca1a33609289a2264ee"
+  },
+  "/home/kenr/repos/niri/src/utils/vblank_throttle.rs": {
+    "mtime": 1779117300.7115633,
+    "ast_hash": "5967a6adc822c774ef72062dfb9f97e8",
+    "semantic_hash": "5967a6adc822c774ef72062dfb9f97e8"
+  },
+  "/home/kenr/repos/niri/src/utils/watcher.rs": {
+    "mtime": 1779117300.7115633,
+    "ast_hash": "fba09134a6469bf9ce24e180c3393829",
+    "semantic_hash": "fba09134a6469bf9ce24e180c3393829"
+  },
+  "/home/kenr/repos/niri/src/utils/xwayland/mod.rs": {
+    "mtime": 1779117300.7115633,
+    "ast_hash": "852f591bc5405f83efdf32c78fdc4616",
+    "semantic_hash": "852f591bc5405f83efdf32c78fdc4616"
+  },
+  "/home/kenr/repos/niri/src/utils/xwayland/satellite.rs": {
+    "mtime": 1779117300.7117372,
+    "ast_hash": "0be4d15cb4658dc7697a04840b906975",
+    "semantic_hash": "0be4d15cb4658dc7697a04840b906975"
+  },
+  "/home/kenr/repos/niri/src/window/mapped.rs": {
+    "mtime": 1779117300.7117372,
+    "ast_hash": "7cfb67741ca220137b223ca59e132c4a",
+    "semantic_hash": "7cfb67741ca220137b223ca59e132c4a"
+  },
+  "/home/kenr/repos/niri/src/window/mod.rs": {
+    "mtime": 1779117300.7117753,
+    "ast_hash": "ed1042918ea628b2f129e3af0e5eb3ea",
+    "semantic_hash": "ed1042918ea628b2f129e3af0e5eb3ea"
+  },
+  "/home/kenr/repos/niri/src/window/unmapped.rs": {
+    "mtime": 1779117300.7117753,
+    "ast_hash": "ebd41c34e7d0e897b7fbbba76dc22dbb",
+    "semantic_hash": "ebd41c34e7d0e897b7fbbba76dc22dbb"
+  },
+  "/home/kenr/repos/niri/src/color/icc.rs": {
+    "mtime": 1779447627.3960056,
+    "ast_hash": "a76d831f0daa50d07ad39ccd66f5e70d",
+    "semantic_hash": "a76d831f0daa50d07ad39ccd66f5e70d"
+  },
+  "/home/kenr/repos/niri/src/color/mod.rs": {
+    "mtime": 1779386744.82324,
+    "ast_hash": "882ebcbb974c8741f4fddc8e7a3c730b",
+    "semantic_hash": "882ebcbb974c8741f4fddc8e7a3c730b"
+  },
+  "/home/kenr/repos/niri/.opencode/package.json": {
+    "mtime": 1779289416.676302,
+    "ast_hash": "1567a89a2edd0314f081f853d1c49c68",
+    "semantic_hash": "1567a89a2edd0314f081f853d1c49c68"
+  },
+  "/home/kenr/repos/niri/.opencode/opencode.json": {
+    "mtime": 1779444358.0706103,
+    "ast_hash": "e5f74d14a81702b55bdf53b33ec991d7",
+    "semantic_hash": "e5f74d14a81702b55bdf53b33ec991d7"
+  },
+  "/home/kenr/repos/niri/.opencode/plugins/graphify.js": {
+    "mtime": 1779441817.2513595,
+    "ast_hash": "64ccd3c03dbfe0980b6095766f5c4e52",
+    "semantic_hash": "64ccd3c03dbfe0980b6095766f5c4e52"
+  },
+  "/home/kenr/repos/niri/CONTRIBUTING.md": {
+    "mtime": 1779117300.6512198,
+    "ast_hash": "c27f6b795cc61439d8fdaa08f195ae2b",
+    "semantic_hash": "c27f6b795cc61439d8fdaa08f195ae2b"
+  },
+  "/home/kenr/repos/niri/README.md": {
+    "mtime": 1779266725.8845253,
+    "ast_hash": "eefdee719a52606c0d74224589c22a6b",
+    "semantic_hash": "eefdee719a52606c0d74224589c22a6b"
+  },
+  "/home/kenr/repos/niri/AGENTS.md": {
+    "mtime": 1779441889.669792,
+    "ast_hash": "d9cb0b5626994d7bc7811f765cd00568",
+    "semantic_hash": "d9cb0b5626994d7bc7811f765cd00568"
+  },
+  "/home/kenr/repos/niri/.github/FUNDING.yml": {
+    "mtime": 1779117300.649875,
+    "ast_hash": "5539e1868587d9a8f8024727f86b8e4b",
+    "semantic_hash": "5539e1868587d9a8f8024727f86b8e4b"
+  },
+  "/home/kenr/repos/niri/.github/dependabot.yml": {
+    "mtime": 1779117300.6511755,
+    "ast_hash": "1027a51e1c20b2376a7c87b7ae73792d",
+    "semantic_hash": "1027a51e1c20b2376a7c87b7ae73792d"
+  },
+  "/home/kenr/repos/niri/.github/ISSUE_TEMPLATE/bug_report.md": {
+    "mtime": 1779117300.6511567,
+    "ast_hash": "b6e884cd4e7d5148aa662c370118859b",
+    "semantic_hash": "b6e884cd4e7d5148aa662c370118859b"
+  },
+  "/home/kenr/repos/niri/.github/ISSUE_TEMPLATE/config.yml": {
+    "mtime": 1779117300.6511755,
+    "ast_hash": "8cb024217e47111d43cfab41d745dfcc",
+    "semantic_hash": "8cb024217e47111d43cfab41d745dfcc"
+  },
+  "/home/kenr/repos/niri/.github/workflows/ci.yml": {
+    "mtime": 1779117300.6511755,
+    "ast_hash": "7e1803ef5e2fccec51f5b9649be6768a",
+    "semantic_hash": "7e1803ef5e2fccec51f5b9649be6768a"
+  },
+  "/home/kenr/repos/niri/.github/workflows/release.yml": {
+    "mtime": 1779117300.6512198,
+    "ast_hash": "12801c72093619b64556de3c02ed62b0",
+    "semantic_hash": "12801c72093619b64556de3c02ed62b0"
+  },
+  "/home/kenr/repos/niri/docs/mkdocs.yaml": {
+    "mtime": 1779117300.6515496,
+    "ast_hash": "eb52d9f15e0a27a9dd3cc62a34c06d5c",
+    "semantic_hash": "eb52d9f15e0a27a9dd3cc62a34c06d5c"
+  },
+  "/home/kenr/repos/niri/docs/hdr-configuration.md": {
+    "mtime": 1779369470.816806,
+    "ast_hash": "309f61cbf09430728b71c10bc8936106",
+    "semantic_hash": "309f61cbf09430728b71c10bc8936106"
+  },
+  "/home/kenr/repos/niri/docs/hdr-implementation-plan.md": {
+    "mtime": 1779388222.1788063,
+    "ast_hash": "d6564e8d637bd65febc170c141b30263",
+    "semantic_hash": "d6564e8d637bd65febc170c141b30263"
+  },
+  "/home/kenr/repos/niri/docs/hdr-testing-checklist.md": {
+    "mtime": 1779388262.3989553,
+    "ast_hash": "7f198c91fe3f914781fa91969ec4544a",
+    "semantic_hash": "7f198c91fe3f914781fa91969ec4544a"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Accessibility.md": {
+    "mtime": 1779117300.6515496,
+    "ast_hash": "92994126fb82897a7678da680bc95ca8",
+    "semantic_hash": "92994126fb82897a7678da680bc95ca8"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Application-Issues.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "2f47050ce9f40528547ba5300c5d9cf4",
+    "semantic_hash": "2f47050ce9f40528547ba5300c5d9cf4"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Animations.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "8a28e8748c48b475295e869fb0aba9ad",
+    "semantic_hash": "8a28e8748c48b475295e869fb0aba9ad"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Debug-Options.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "bdd915ff3739d43869e19b550e9d7780",
+    "semantic_hash": "bdd915ff3739d43869e19b550e9d7780"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Gestures.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "f426983dff9e57c63580975bb904b3f1",
+    "semantic_hash": "f426983dff9e57c63580975bb904b3f1"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Include.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "86e24cc4be650205723857c678722fe1",
+    "semantic_hash": "86e24cc4be650205723857c678722fe1"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Input.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "d0f3908d8af86acb33929aadc2a1c576",
+    "semantic_hash": "d0f3908d8af86acb33929aadc2a1c576"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Introduction.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "a2899a8430b79091ca5e23741910499d",
+    "semantic_hash": "a2899a8430b79091ca5e23741910499d"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Key-Bindings.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "03803b954eb2df5083dc1de88a77a8f7",
+    "semantic_hash": "03803b954eb2df5083dc1de88a77a8f7"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Layer-Rules.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "687f80938be7e13846cc0943c53303b2",
+    "semantic_hash": "687f80938be7e13846cc0943c53303b2"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Layout.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "440db1b79ae9697a0cd65e893205451f",
+    "semantic_hash": "440db1b79ae9697a0cd65e893205451f"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Miscellaneous.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "85f5d6b6661b116a269209a40c5f6f0a",
+    "semantic_hash": "85f5d6b6661b116a269209a40c5f6f0a"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Named-Workspaces.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "ed4054f256b71cc6c0036164f8860a51",
+    "semantic_hash": "ed4054f256b71cc6c0036164f8860a51"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Outputs.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "b0fe3ef022562d60675d8e19518d1790",
+    "semantic_hash": "b0fe3ef022562d60675d8e19518d1790"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Overview.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "c9e69ca1a55aab7382cf6a5b6b92656c",
+    "semantic_hash": "c9e69ca1a55aab7382cf6a5b6b92656c"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Recent-Windows.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "791ea23cf51e3d0cc49038409aefe514",
+    "semantic_hash": "791ea23cf51e3d0cc49038409aefe514"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Switch-Events.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "b4a9f9f910e6811d9a67f16e2f7ad21a",
+    "semantic_hash": "b4a9f9f910e6811d9a67f16e2f7ad21a"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Configuration:-Window-Rules.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "8eb9f919bd21efe35dbf2a47127f38f2",
+    "semantic_hash": "8eb9f919bd21efe35dbf2a47127f38f2"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Development:-Animation-Timing.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "81c801d825ad381013dfee94b95ea78d",
+    "semantic_hash": "81c801d825ad381013dfee94b95ea78d"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Development:-Design-Principles.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "546ff0909a51011b7df53491b398050c",
+    "semantic_hash": "546ff0909a51011b7df53491b398050c"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Development:-Developing-niri.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "2fea1b1ceffbedf0ad25db57c37e5246",
+    "semantic_hash": "2fea1b1ceffbedf0ad25db57c37e5246"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Development:-Documenting-niri.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "2305d5e44166368149d1989c8471e3ed",
+    "semantic_hash": "2305d5e44166368149d1989c8471e3ed"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Development:-Fractional-Layout.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "2430914065dece79452aaca98f930725",
+    "semantic_hash": "2430914065dece79452aaca98f930725"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Development:-Redraw-Loop.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "cbdfe76b460c928f9765199e3c4fb071",
+    "semantic_hash": "cbdfe76b460c928f9765199e3c4fb071"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Development:-Releasing-niri.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "73db9b6ac73a9287ce6d0c48febc7ba3",
+    "semantic_hash": "73db9b6ac73a9287ce6d0c48febc7ba3"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Example-systemd-Setup.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "1085261a33d43eaac866c88a7cf4fa5d",
+    "semantic_hash": "1085261a33d43eaac866c88a7cf4fa5d"
+  },
+  "/home/kenr/repos/niri/docs/wiki/FAQ.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "412c3304a943941591f45b700944a83e",
+    "semantic_hash": "412c3304a943941591f45b700944a83e"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Floating-Windows.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "58630778e36c8684ffe7ffd6970f7a82",
+    "semantic_hash": "58630778e36c8684ffe7ffd6970f7a82"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Fullscreen-and-Maximize.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "52da55af127fb39254e59e89541744b7",
+    "semantic_hash": "52da55af127fb39254e59e89541744b7"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Gestures.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "52bd698d20aff97f3f12937e91f08dc8",
+    "semantic_hash": "52bd698d20aff97f3f12937e91f08dc8"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Getting-Started.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "5c395e011fd5c1b881ae74b61602b3e6",
+    "semantic_hash": "5c395e011fd5c1b881ae74b61602b3e6"
+  },
+  "/home/kenr/repos/niri/docs/wiki/IPC.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "5b89b5970e52dd52dd088dee5489f467",
+    "semantic_hash": "5b89b5970e52dd52dd088dee5489f467"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Important-Software.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "fd15a2eda5458d6c1b9b2c10fe945fa3",
+    "semantic_hash": "fd15a2eda5458d6c1b9b2c10fe945fa3"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Integrating-niri.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "1a9b5f39acca215f9298d36c39c4c78a",
+    "semantic_hash": "1a9b5f39acca215f9298d36c39c4c78a"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Layer\u2010Shell-Components.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "2643cb2b1247be72f66509cdb77b075a",
+    "semantic_hash": "2643cb2b1247be72f66509cdb77b075a"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Name-and-Logo.md": {
+    "mtime": 1779117300.6517146,
+    "ast_hash": "38ef601c2644b6cc2da8ef1991bcfb7b",
+    "semantic_hash": "38ef601c2644b6cc2da8ef1991bcfb7b"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Nvidia.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "4ca063750c133b9ba2bd41b015088c85",
+    "semantic_hash": "4ca063750c133b9ba2bd41b015088c85"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Overview.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "26ef6e5ba7c07b51d89f2b57c8d199b6",
+    "semantic_hash": "26ef6e5ba7c07b51d89f2b57c8d199b6"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Packaging-niri.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "0fd84c47510b0a69aac8fb5317070429",
+    "semantic_hash": "0fd84c47510b0a69aac8fb5317070429"
+  },
+  "/home/kenr/repos/niri/docs/wiki/README.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "0c18b45e882fcbf9ee43a083151182e6",
+    "semantic_hash": "0c18b45e882fcbf9ee43a083151182e6"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Screencasting.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "2b59616196c33cac24e1183a994d95b7",
+    "semantic_hash": "2b59616196c33cac24e1183a994d95b7"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Security-Model.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "8e92d9f128ecc3a1a660c9f392e92b49",
+    "semantic_hash": "8e92d9f128ecc3a1a660c9f392e92b49"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Tabs.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "fa7797a8428acedde5116b53b7fb8591",
+    "semantic_hash": "fa7797a8428acedde5116b53b7fb8591"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Window-Effects.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "21479d6549b258324caf60f84d62ba70",
+    "semantic_hash": "21479d6549b258324caf60f84d62ba70"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Workspaces.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "2974ea64ab3f0f9aace582e6edc2c948",
+    "semantic_hash": "2974ea64ab3f0f9aace582e6edc2c948"
+  },
+  "/home/kenr/repos/niri/docs/wiki/Xwayland.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "bf2f3a2a275f54d55e5ebbaaaf0b7df3",
+    "semantic_hash": "bf2f3a2a275f54d55e5ebbaaaf0b7df3"
+  },
+  "/home/kenr/repos/niri/docs/wiki/_Sidebar.md": {
+    "mtime": 1779117300.651875,
+    "ast_hash": "a8934635916ad72a6e6f58af8aec3b56",
+    "semantic_hash": "a8934635916ad72a6e6f58af8aec3b56"
+  },
+  "/home/kenr/repos/niri/niri-ipc/README.md": {
+    "mtime": 1779117300.6553872,
+    "ast_hash": "93e5781ea6769869de23851cb2bef14f",
+    "semantic_hash": "93e5781ea6769869de23851cb2bef14f"
+  },
+  "/home/kenr/repos/niri/niri-visual-tests/README.md": {
+    "mtime": 1779117300.6555166,
+    "ast_hash": "cd21611048d59a6f60dda3a0f57c4d9f",
+    "semantic_hash": "cd21611048d59a6f60dda3a0f57c4d9f"
+  },
+  "/home/kenr/repos/niri/resources/rustdoc-index.html": {
+    "mtime": 1779117300.6558256,
+    "ast_hash": "b0744ae076dab0af66c7ea02c93fcaf2",
+    "semantic_hash": "b0744ae076dab0af66c7ea02c93fcaf2"
+  },
+  "/home/kenr/repos/niri/docs/wiki/_assets/icons/logo.svg": {
+    "mtime": 1779117300.6525319,
+    "ast_hash": "edeaa79f894a470c7877a3f64fef3199",
+    "semantic_hash": "edeaa79f894a470c7877a3f64fef3199"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/RedrawState-dark.drawio.png": {
+    "mtime": 1779117300.6526182,
+    "ast_hash": "4e27dc26e58e566d512c290519e33dbc",
+    "semantic_hash": "4e27dc26e58e566d512c290519e33dbc"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/RedrawState-light.drawio.png": {
+    "mtime": 1779117300.6527407,
+    "ast_hash": "278b03e0d960c59a9d6f9beceb1e8a16",
+    "semantic_hash": "278b03e0d960c59a9d6f9beceb1e8a16"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/block-out-from-screencast.png": {
+    "mtime": 1779117300.6527407,
+    "ast_hash": "8c662fc86fdcfa5c2df9268e22948451",
+    "semantic_hash": "8c662fc86fdcfa5c2df9268e22948451"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/blur.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "f034b8963a34e7be1456b699dce23732",
+    "semantic_hash": "f034b8963a34e7be1456b699dce23732"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/border-radius-clip.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "3bacb9ad362864bc4ab60f26805ecb3d",
+    "semantic_hash": "3bacb9ad362864bc4ab60f26805ecb3d"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/border.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "701246dd497d569a9c29f7c8712d5d74",
+    "semantic_hash": "701246dd497d569a9c29f7c8712d5d74"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/clip-to-geometry.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "bfd62fb64f1a8e4d2c9527a579fbf834",
+    "semantic_hash": "bfd62fb64f1a8e4d2c9527a579fbf834"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/different-corner-radius.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "9d6625f2db121bf5a4426d449fe93f06",
+    "semantic_hash": "9d6625f2db121bf5a4426d449fe93f06"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/focus-ring.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "16371c56c1be01a9c4fa2f617dd4103a",
+    "semantic_hash": "16371c56c1be01a9c4fa2f617dd4103a"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/fullscreen-window-in-overview.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "decd7f2d1319ad86a67acccad2144ac9",
+    "semantic_hash": "decd7f2d1319ad86a67acccad2144ac9"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/fullscreen-window.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "efd5ecd7ac4c1aa8613e4b50a718d808",
+    "semantic_hash": "efd5ecd7ac4c1aa8613e4b50a718d808"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/geometry-corner-radius.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "838b46add06a15f9bd4c6561120bd0eb",
+    "semantic_hash": "838b46add06a15f9bd4c6561120bd0eb"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/gradients-default.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "4a87b6a91509828da4d420f2ce932e1b",
+    "semantic_hash": "4a87b6a91509828da4d420f2ce932e1b"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/gradients-oklch.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "9e92fad0861e77ebe8a5dbfad443bcf1",
+    "semantic_hash": "9e92fad0861e77ebe8a5dbfad443bcf1"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/gradients-relative-to-workspace-view.png": {
+    "mtime": 1779117300.652875,
+    "ast_hash": "a4113a306d66cd44cf4c7da0aa861d74",
+    "semantic_hash": "a4113a306d66cd44cf4c7da0aa861d74"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/layer-block-out-from-screencast.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "714aec2d5c66abed583ab1239e05ce96",
+    "semantic_hash": "714aec2d5c66abed583ab1239e05ce96"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/maximized-column.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "fa8ca5bb2605275a745e5c555a7b75da",
+    "semantic_hash": "fa8ca5bb2605275a745e5c555a7b75da"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/opacity-popup.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "2eb10f1aa695c0b9aa32d65ff6b27861",
+    "semantic_hash": "2eb10f1aa695c0b9aa32d65ff6b27861"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/popup-arrow.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "ab8aca44a345fa17409d952219a9e4f6",
+    "semantic_hash": "ab8aca44a345fa17409d952219a9e4f6"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/popup-no-arrow.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "f77a132f0e277bd31555e2a4575655de",
+    "semantic_hash": "f77a132f0e277bd31555e2a4575655de"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/simple-egl-border-with-background.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "fedafdbf409bd559a78a37eccff886d4",
+    "semantic_hash": "fedafdbf409bd559a78a37eccff886d4"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/simple-egl-border-without-background.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "b13fd11b5346632d61c3aeba43c85f9e",
+    "semantic_hash": "b13fd11b5346632d61c3aeba43c85f9e"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/struts.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "86b6cad7114391c323ac03b4d50b3931",
+    "semantic_hash": "86b6cad7114391c323ac03b4d50b3931"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/window-maximized-to-edges.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "47fa811e42d97071a596b953ea20b500",
+    "semantic_hash": "47fa811e42d97071a596b953ea20b500"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/workspaces-dark.drawio.svg": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "44b9e317b86cb2dde59374cb75c8718e",
+    "semantic_hash": "44b9e317b86cb2dde59374cb75c8718e"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/workspaces-dark.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "eae28ed8d1c4e11d971c347509d37c14",
+    "semantic_hash": "eae28ed8d1c4e11d971c347509d37c14"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/workspaces-light.drawio.svg": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "4f874143439ac069de5a232ee1682354",
+    "semantic_hash": "4f874143439ac069de5a232ee1682354"
+  },
+  "/home/kenr/repos/niri/docs/wiki/img/workspaces-light.png": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "b7fb0662d2e2cfdaa731b120b5d1fc56",
+    "semantic_hash": "b7fb0662d2e2cfdaa731b120b5d1fc56"
+  },
+  "/home/kenr/repos/niri/docs/wiki/logo/niri-icon-smol.svg": {
+    "mtime": 1779117300.6538749,
+    "ast_hash": "f237656696364a7f78da892477dd25bf",
+    "semantic_hash": "f237656696364a7f78da892477dd25bf"
+  },
+  "/home/kenr/repos/niri/docs/wiki/logo/niri-icon.svg": {
+    "mtime": 1779117300.6548643,
+    "ast_hash": "aa1e17040ddc2ceb1d0a90d8b7a2f242",
+    "semantic_hash": "aa1e17040ddc2ceb1d0a90d8b7a2f242"
+  },
+  "/home/kenr/repos/niri/docs/wiki/logo/niri-logo-smol.svg": {
+    "mtime": 1779117300.6548643,
+    "ast_hash": "c057673edbae8f792547d2934b6ac44d",
+    "semantic_hash": "c057673edbae8f792547d2934b6ac44d"
+  },
+  "/home/kenr/repos/niri/docs/wiki/logo/niri-logo.svg": {
+    "mtime": 1779117300.6548643,
+    "ast_hash": "90d54171138ac1ab45fe74d9ce5e428f",
+    "semantic_hash": "90d54171138ac1ab45fe74d9ce5e428f"
+  }
+}

@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/niri-config/tests/wiki-parses.rs
+/home/kenr/repos/niri/niri-ipc/README.md
+/home/kenr/repos/niri/niri-ipc/src/socket.rs
+/home/kenr/repos/niri/niri-ipc/src/state.rs
+/home/kenr/repos/niri/niri-ipc/src/lib.rs
+/home/kenr/repos/niri/niri-visual-tests/README.md
+/home/kenr/repos/niri/niri-visual-tests/src/main.rs
+/home/kenr/repos/niri/niri-visual-tests/src/smithay_view.rs
+/home/kenr/repos/niri/niri-visual-tests/src/test_window.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_angle.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_area.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklab.rs

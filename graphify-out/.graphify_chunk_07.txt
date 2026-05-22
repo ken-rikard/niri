@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/niri-config/src/input.rs
+/home/kenr/repos/niri/niri-config/src/layer_rule.rs
+/home/kenr/repos/niri/niri-config/src/layout.rs
+/home/kenr/repos/niri/niri-config/src/lib.rs
+/home/kenr/repos/niri/niri-config/src/macros.rs
+/home/kenr/repos/niri/niri-config/src/misc.rs
+/home/kenr/repos/niri/niri-config/src/recent_windows.rs
+/home/kenr/repos/niri/niri-config/src/utils.rs
+/home/kenr/repos/niri/niri-config/src/window_rule.rs
+/home/kenr/repos/niri/niri-config/src/workspace.rs
+/home/kenr/repos/niri/niri-config/src/output.rs
+/home/kenr/repos/niri/niri-config/src/utils/merge_with.rs

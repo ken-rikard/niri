@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/niri-visual-tests/src/cases/tile.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/window.rs
+/home/kenr/repos/niri/resources/niri-session
+/home/kenr/repos/niri/resources/rustdoc-index.html
+/home/kenr/repos/niri/src/a11y.rs
+/home/kenr/repos/niri/src/cli.rs
+/home/kenr/repos/niri/src/cursor.rs
+/home/kenr/repos/niri/src/frame_clock.rs
+/home/kenr/repos/niri/src/main.rs
+/home/kenr/repos/niri/src/rubber_band.rs
+/home/kenr/repos/niri/src/lib.rs
+/home/kenr/repos/niri/src/niri.rs

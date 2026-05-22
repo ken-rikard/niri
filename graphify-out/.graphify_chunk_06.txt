@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/docs/wiki/Security-Model.md
+/home/kenr/repos/niri/docs/wiki/Tabs.md
+/home/kenr/repos/niri/docs/wiki/Window-Effects.md
+/home/kenr/repos/niri/docs/wiki/Workspaces.md
+/home/kenr/repos/niri/docs/wiki/Xwayland.md
+/home/kenr/repos/niri/docs/wiki/_Sidebar.md
+/home/kenr/repos/niri/niri-config/src/animations.rs
+/home/kenr/repos/niri/niri-config/src/appearance.rs
+/home/kenr/repos/niri/niri-config/src/binds.rs
+/home/kenr/repos/niri/niri-config/src/debug.rs
+/home/kenr/repos/niri/niri-config/src/error.rs
+/home/kenr/repos/niri/niri-config/src/gestures.rs

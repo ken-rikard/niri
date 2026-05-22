@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklab_alpha.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklch_alpha.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklch_decreasing.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklch_increasing.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklch_longer.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_oklch_shorter.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_srgb.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_srgb_alpha.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_srgblinear.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/gradient_srgblinear_alpha.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/layout.rs
+/home/kenr/repos/niri/niri-visual-tests/src/cases/mod.rs

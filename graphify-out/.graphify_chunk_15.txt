@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/src/layout/opening_window.rs
+/home/kenr/repos/niri/src/layout/scrolling.rs
+/home/kenr/repos/niri/src/layout/shadow.rs
+/home/kenr/repos/niri/src/layout/tab_indicator.rs
+/home/kenr/repos/niri/src/layout/tests.rs
+/home/kenr/repos/niri/src/layout/tile.rs
+/home/kenr/repos/niri/src/layout/workspace.rs
+/home/kenr/repos/niri/src/layout/tests/animations.rs
+/home/kenr/repos/niri/src/layout/tests/fullscreen.rs
+/home/kenr/repos/niri/src/protocols/ext_workspace.rs
+/home/kenr/repos/niri/src/protocols/foreign_toplevel.rs
+/home/kenr/repos/niri/src/protocols/gamma_control.rs

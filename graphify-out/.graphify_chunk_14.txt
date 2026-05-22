@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/src/input/touch_resize_grab.rs
+/home/kenr/repos/niri/src/ipc/client.rs
+/home/kenr/repos/niri/src/ipc/mod.rs
+/home/kenr/repos/niri/src/ipc/server.rs
+/home/kenr/repos/niri/src/layer/mapped.rs
+/home/kenr/repos/niri/src/layer/mod.rs
+/home/kenr/repos/niri/src/layout/closing_window.rs
+/home/kenr/repos/niri/src/layout/floating.rs
+/home/kenr/repos/niri/src/layout/focus_ring.rs
+/home/kenr/repos/niri/src/layout/insert_hint_element.rs
+/home/kenr/repos/niri/src/layout/mod.rs
+/home/kenr/repos/niri/src/layout/monitor.rs

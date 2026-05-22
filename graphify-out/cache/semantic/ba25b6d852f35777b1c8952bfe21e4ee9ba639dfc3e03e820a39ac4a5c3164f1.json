@@ -1,0 +1,1 @@
+{"nodes": [{"id": "build_rs_main", "label": "Build script main", "file_type": "code", "source_file": "build.rs", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null, "rationale": "Probes libinput >= 1.30.0 via pkg-config to conditionally set have_libinput_plugin_system cfg flag."}], "edges": [], "hyperedges": []}

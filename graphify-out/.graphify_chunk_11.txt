@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/src/animation/bezier.rs
+/home/kenr/repos/niri/src/animation/clock.rs
+/home/kenr/repos/niri/src/animation/mod.rs
+/home/kenr/repos/niri/src/animation/spring.rs
+/home/kenr/repos/niri/src/backend/headless.rs
+/home/kenr/repos/niri/src/backend/mod.rs
+/home/kenr/repos/niri/src/backend/winit.rs
+/home/kenr/repos/niri/src/backend/tty.rs
+/home/kenr/repos/niri/src/color/icc.rs
+/home/kenr/repos/niri/src/color/mod.rs
+/home/kenr/repos/niri/src/dbus/freedesktop_a11y.rs
+/home/kenr/repos/niri/src/dbus/freedesktop_locale1.rs

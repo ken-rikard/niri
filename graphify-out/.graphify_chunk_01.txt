@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/build.rs
+/home/kenr/repos/niri/CONTRIBUTING.md
+/home/kenr/repos/niri/README.md
+/home/kenr/repos/niri/AGENTS.md
+/home/kenr/repos/niri/.github/FUNDING.yml
+/home/kenr/repos/niri/.github/dependabot.yml
+/home/kenr/repos/niri/.github/ISSUE_TEMPLATE/bug_report.md
+/home/kenr/repos/niri/.github/ISSUE_TEMPLATE/config.yml
+/home/kenr/repos/niri/.github/workflows/ci.yml
+/home/kenr/repos/niri/.github/workflows/release.yml
+/home/kenr/repos/niri/.opencode/package.json
+/home/kenr/repos/niri/.opencode/opencode.json

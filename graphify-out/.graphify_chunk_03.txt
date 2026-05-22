@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/docs/wiki/Configuration:-Include.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Input.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Introduction.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Key-Bindings.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Layer-Rules.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Layout.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Miscellaneous.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Named-Workspaces.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Outputs.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Overview.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Recent-Windows.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Switch-Events.md

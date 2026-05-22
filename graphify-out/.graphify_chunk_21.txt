@@ -1,0 +1,8 @@
+/home/kenr/repos/niri/src/utils/transaction.rs
+/home/kenr/repos/niri/src/utils/vblank_throttle.rs
+/home/kenr/repos/niri/src/utils/watcher.rs
+/home/kenr/repos/niri/src/utils/xwayland/mod.rs
+/home/kenr/repos/niri/src/utils/xwayland/satellite.rs
+/home/kenr/repos/niri/src/window/mapped.rs
+/home/kenr/repos/niri/src/window/mod.rs
+/home/kenr/repos/niri/src/window/unmapped.rs

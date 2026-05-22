@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/src/ui/hotkey_overlay.rs
+/home/kenr/repos/niri/src/ui/mod.rs
+/home/kenr/repos/niri/src/ui/mru.rs
+/home/kenr/repos/niri/src/ui/screen_transition.rs
+/home/kenr/repos/niri/src/ui/screenshot_ui.rs
+/home/kenr/repos/niri/src/ui/mru/tests.rs
+/home/kenr/repos/niri/src/utils/id.rs
+/home/kenr/repos/niri/src/utils/mod.rs
+/home/kenr/repos/niri/src/utils/region.rs
+/home/kenr/repos/niri/src/utils/scale.rs
+/home/kenr/repos/niri/src/utils/signals.rs
+/home/kenr/repos/niri/src/utils/spawning.rs

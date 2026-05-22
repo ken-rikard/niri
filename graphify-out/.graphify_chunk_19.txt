@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/src/tests/client.rs
+/home/kenr/repos/niri/src/tests/fixture.rs
+/home/kenr/repos/niri/src/tests/floating.rs
+/home/kenr/repos/niri/src/tests/fullscreen.rs
+/home/kenr/repos/niri/src/tests/layer_shell.rs
+/home/kenr/repos/niri/src/tests/mod.rs
+/home/kenr/repos/niri/src/tests/remove_output.rs
+/home/kenr/repos/niri/src/tests/server.rs
+/home/kenr/repos/niri/src/tests/transactions.rs
+/home/kenr/repos/niri/src/tests/window_opening.rs
+/home/kenr/repos/niri/src/ui/config_error_notification.rs
+/home/kenr/repos/niri/src/ui/exit_confirm_dialog.rs

@@ -1,0 +1,12 @@
+/home/kenr/repos/niri/.opencode/plugins/graphify.js
+/home/kenr/repos/niri/docs/mkdocs.yaml
+/home/kenr/repos/niri/docs/hdr-configuration.md
+/home/kenr/repos/niri/docs/hdr-implementation-plan.md
+/home/kenr/repos/niri/docs/hdr-testing-checklist.md
+/home/kenr/repos/niri/docs/hooks/remove-must-fail.py
+/home/kenr/repos/niri/docs/hooks/shortcodes.py
+/home/kenr/repos/niri/docs/wiki/Accessibility.md
+/home/kenr/repos/niri/docs/wiki/Application-Issues.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Animations.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Debug-Options.md
+/home/kenr/repos/niri/docs/wiki/Configuration:-Gestures.md
