@@ -102,6 +102,42 @@ tail -f ~/.local/share/sddm/wayland-session.log
 
 ---
 
+## Phase 3: ICC Profile Support — ⚠️ UNTESSED
+
+**Branch:** `feature/hdr-icc-profiles`
+
+**Status:** ✅ Implemented (basic matrix-based correction)
+
+### Test 3.1: ICC Profile Loading
+
+1. Obtain or generate an ICC profile for your display:
+   - sRGB profile: `/usr/share/color/icc/colord/sRGB.icc` (should be identity)
+   - Display P3 profile (for wide-gamut displays)
+   - Calibrated profile from colorimeter
+2. Add to `config.kdl`:
+   ```kdl
+   output "DP-3" {
+       icc-profile "/path/to/profile.icc"
+       hdr {
+           enabled true
+       }
+   }
+   ```
+3. Reload config: `niri msg action reload-config`
+4. Check logs for: `Loaded ICC profile for DP-3: /path/to/profile.icc (Description)`
+5. **Verify:** No errors during profile loading
+
+### Test 3.2: Color Accuracy
+
+1. With ICC profile loaded and HDR enabled, display a known sRGB test pattern
+2. **Verify:** Colors appear accurate compared to sRGB reference
+3. For Display P3 monitors: verify sRGB content is NOT oversaturated
+4. Compare with and without ICC profile by commenting out the config line
+
+**Note:** ICC correction is applied in the HDR shader path. When HDR is disabled, the profile currently has no effect (SDR pipeline uses direct rendering without color management).
+
+---
+
 ## Phase 4: Gamut Mapping — ✅ Previously Tested
 
 **Branch:** `feature/hdr-support`
@@ -258,6 +294,10 @@ Copy this section and fill in results:
 - [ ] Test 2.1: PASS / FAIL — Notes:
 - [ ] Test 2.2: PASS / FAIL — Notes:
 - [ ] Test 2.3: PASS / FAIL — Notes:
+
+### Phase 3: ICC Profile Support
+- [ ] Test 3.1: PASS / FAIL — Notes:
+- [ ] Test 3.2: PASS / FAIL — Notes:
 
 ### Phase 4: Gamut Mapping
 - [ ] Test 4.1: PASS / FAIL — Notes:

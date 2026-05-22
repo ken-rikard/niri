@@ -453,6 +453,8 @@ pub struct OutputState {
     pub on_demand_vrr_enabled: bool,
     // HDR state for this output.
     pub hdr_enabled: bool,
+    /// Parsed ICC profile for color-accurate rendering, if configured.
+    pub icc_profile: Option<crate::color::icc::IccProfile>,
     // After the last redraw, some ongoing animations still remain.
     pub unfinished_animations_remain: bool,
     /// Last sequence received in a vblank event.
@@ -1890,7 +1892,74 @@ impl State {
     }
 
     pub fn apply_transient_output_config(&mut self, name: &str, action: niri_ipc::OutputAction) {
-        self.modify_output_config(name, move |config| match action {
+        // Handle ICC toggle directly without modifying config.
+        if let niri_ipc::OutputAction::Icc { enabled } = &action {
+            let output_opt = self.niri.output_by_name_match(name).cloned();
+            let needs_redraw = if let Some(ref output) = output_opt {
+                let state = self.niri.output_state.get_mut(output);
+                if let Some(state) = state {
+                    if *enabled {
+                        if state.icc_profile.is_some() {
+                            info!("ICC profile already enabled for {}", name);
+                            false
+                        } else {
+                            let config = self.niri.config.borrow();
+                            let icc_path = config.outputs.0.iter()
+                                .find(|o| o.name == name)
+                                .and_then(|c| c.icc_profile.clone());
+                            drop(config);
+                            
+                            if let Some(path) = icc_path {
+                                let expanded = if path.starts_with("~/") {
+                                    std::env::var("HOME")
+                                        .map(|home| format!("{}{}", home, &path[1..]))
+                                        .unwrap_or_else(|_| path.clone())
+                                } else {
+                                    path.clone()
+                                };
+                                match crate::color::icc::parse_icc_profile(&expanded) {
+                                    Ok(profile) => {
+                                        info!("Enabled ICC profile for {}: {} ({})",
+                                              name, expanded, profile.description);
+                                        state.icc_profile = Some(profile);
+                                        true
+                                    }
+                                    Err(err) => {
+                                        warn!("Failed to enable ICC profile for {}: {}",
+                                              name, err);
+                                        false
+                                    }
+                                }
+                            } else {
+                                warn!("No ICC profile configured for output {}", name);
+                                false
+                            }
+                        }
+                    } else if state.icc_profile.take().is_some() {
+                        info!("Disabled ICC profile for {}", name);
+                        true
+                    } else {
+                        info!("ICC profile already disabled for {}", name);
+                        false
+                    }
+                } else {
+                    false
+                }
+            } else {
+                false
+            };
+            if needs_redraw {
+                if let Some(output) = output_opt {
+                    self.niri.queue_redraw(&output);
+                }
+            }
+            return;
+        }
+        
+        self.modify_output_config(name, move |config| match action.clone() {
+            niri_ipc::OutputAction::Icc { .. } => {
+                // Already handled above.
+            }
             niri_ipc::OutputAction::Off => config.off = true,
             niri_ipc::OutputAction::On => config.off = false,
             niri_ipc::OutputAction::Mode { mode } => {
@@ -2906,7 +2975,37 @@ impl Niri {
                 layout.background_color = c.and_then(|c| c.background_color);
             }
         }
+        
+        // Load ICC profile if configured.
+        let icc_profile = c
+            .and_then(|c| c.icc_profile.as_ref())
+            .and_then(|path| {
+                let expanded = if path.starts_with("~/") {
+                    std::env::var("HOME")
+                        .map(|home| format!("{}{}", home, &path[1..]))
+                        .unwrap_or_else(|_| path.clone())
+                } else {
+                    path.clone()
+                };
+                match crate::color::icc::parse_icc_profile(&expanded) {
+                    Ok(profile) => {
+                        info!("Loaded ICC profile for {}: {} ({})", 
+                              name.connector, 
+                              expanded,
+                              profile.description);
+                        Some(profile)
+                    }
+                    Err(err) => {
+                        warn!("Failed to load ICC profile for {}: {}: {}",
+                              name.connector, path, err);
+                        None
+                    }
+                }
+            });
+        
         drop(config);
+
+        self.layout.add_output(output.clone(), layout_config);
 
         // Set scale and transform before adding to the layout since that will read the output size.
         output.change_current_state(
@@ -2915,8 +3014,6 @@ impl Niri {
             Some(output::Scale::Fractional(scale)),
             None,
         );
-
-        self.layout.add_output(output.clone(), layout_config);
 
         let lock_render_state = if self.is_locked() {
             // We haven't rendered anything yet so it's as good as locked.
@@ -2931,6 +3028,7 @@ impl Niri {
             redraw_state: RedrawState::Idle,
             on_demand_vrr_enabled: false,
             hdr_enabled,
+            icc_profile,
             unfinished_animations_remain: false,
             frame_clock: FrameClock::new(refresh_interval, vrr),
             last_drm_sequence: None,

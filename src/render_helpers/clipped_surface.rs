@@ -238,17 +238,31 @@ impl RenderElement<GlesRenderer> for ClippedSurfaceRenderElement<GlesRenderer> {
         opaque_regions: &[Rectangle<i32, Physical>],
         cache: Option<&UserDataMap>,
     ) -> Result<(), GlesError> {
-        frame.override_default_tex_program(self.program.clone(), self.compute_uniforms());
-        RenderElement::<GlesRenderer>::draw(
-            &self.inner,
-            frame,
-            src,
-            dst,
-            damage,
-            opaque_regions,
-            cache,
-        )?;
-        frame.clear_tex_program_override();
+        if frame.has_tex_program_override() {
+            let count = frame.append_tex_program_override_uniforms(self.compute_uniforms());
+            RenderElement::<GlesRenderer>::draw(
+                &self.inner,
+                frame,
+                src,
+                dst,
+                damage,
+                opaque_regions,
+                cache,
+            )?;
+            frame.truncate_tex_program_override_uniforms(count);
+        } else {
+            frame.override_default_tex_program(self.program.clone(), self.compute_uniforms());
+            RenderElement::<GlesRenderer>::draw(
+                &self.inner,
+                frame,
+                src,
+                dst,
+                damage,
+                opaque_regions,
+                cache,
+            )?;
+            frame.clear_tex_program_override();
+        }
         Ok(())
     }
 
@@ -271,11 +285,23 @@ impl<'render> RenderElement<TtyRenderer<'render>>
         opaque_regions: &[Rectangle<i32, Physical>],
         cache: Option<&UserDataMap>,
     ) -> Result<(), TtyRendererError<'render>> {
-        frame
-            .as_gles_frame()
-            .override_default_tex_program(self.program.clone(), self.compute_uniforms());
+        let appended_count;
+        {
+            let gles_frame = frame.as_gles_frame();
+            if gles_frame.has_tex_program_override() {
+                appended_count = Some(gles_frame.append_tex_program_override_uniforms(self.compute_uniforms()));
+            } else {
+                gles_frame.override_default_tex_program(self.program.clone(), self.compute_uniforms());
+                appended_count = None;
+            }
+        }
         RenderElement::draw(&self.inner, frame, src, dst, damage, opaque_regions, cache)?;
-        frame.as_gles_frame().clear_tex_program_override();
+        let gles_frame = frame.as_gles_frame();
+        if let Some(count) = appended_count {
+            gles_frame.truncate_tex_program_override_uniforms(count);
+        } else {
+            gles_frame.clear_tex_program_override();
+        }
         Ok(())
     }
 

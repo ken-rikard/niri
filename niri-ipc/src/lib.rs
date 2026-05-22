@@ -1103,6 +1103,20 @@ pub enum OutputAction {
         #[cfg_attr(feature = "clap", command(flatten))]
         hdr: HdrOutputConfig,
     },
+    /// Toggle ICC color profile on or off for this output.
+    Icc {
+        /// Whether to enable (true) or disable (false) the ICC profile.
+        #[cfg_attr(
+            feature = "clap",
+            arg(
+                value_name = "ON|OFF",
+                action = clap::ArgAction::Set,
+                value_parser = clap::builder::BoolishValueParser::new(),
+                hide_possible_values = true,
+            ),
+        )]
+        enabled: bool,
+    },
 }
 
 /// Output mode to set.

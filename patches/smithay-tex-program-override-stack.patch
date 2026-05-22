@@ -1,0 +1,95 @@
+diff --git a/src/backend/renderer/gles/mod.rs b/src/backend/renderer/gles/mod.rs
+index 15f9a83f..b69b3720 100644
+--- a/src/backend/renderer/gles/mod.rs
++++ b/src/backend/renderer/gles/mod.rs
+@@ -424,7 +424,7 @@ pub struct GlesFrame<'frame, 'buffer> {
+     current_projection: Matrix3<f32>,
+     transform: Transform,
+     size: Size<i32, Physical>,
+-    tex_program_override: Option<(GlesTexProgram, Vec<Uniform<'static>>)>,
++    tex_program_override: Vec<(GlesTexProgram, Vec<Uniform<'static>>)>,
+     finished: AtomicBool,
+ 
+     span: EnteredSpan,
+@@ -2250,7 +2250,7 @@ impl Renderer for GlesRenderer {
+             current_projection,
+             transform,
+             size: output_size,
+-            tex_program_override: None,
++            tex_program_override: Vec::new(),
+             finished: AtomicBool::new(false),
+ 
+             span,
+@@ -2532,23 +2532,47 @@ impl GlesFrame<'_, '_> {
+     /// This affects calls to [`Frame::render_texture_at`] or [`Frame::render_texture_from_to`] as well as
+     /// calls to [`GlesFrame::render_texture_from_to`] or [`GlesFrame::render_texture`], if the passed in `program` is `None`.
+     ///
+-    /// Override is active only for the lifetime of this `GlesFrame` and can be reset via [`GlesFrame::clear_tex_program_override`].
++    /// Overrides are stacked (push/pop). Multiple overrides can be active at once;
++    /// the most recent one takes precedence. Use [`GlesFrame::clear_tex_program_override`]
++    /// to pop the most recent override.
+     pub fn override_default_tex_program(
+         &mut self,
+         program: GlesTexProgram,
+         additional_uniforms: Vec<Uniform<'static>>,
+     ) {
+-        self.tex_program_override = Some((program, additional_uniforms));
++        self.tex_program_override.push((program, additional_uniforms));
+     }
+ 
+-    /// Resets a texture shader override previously set by [`GlesFrame::override_default_tex_program`].
++    /// Resets the most recent texture shader override previously set by [`GlesFrame::override_default_tex_program`].
++    /// This pops the top of the override stack.
+     pub fn clear_tex_program_override(&mut self) {
+-        self.tex_program_override = None;
++        self.tex_program_override.pop();
+     }
+ 
+-    /// Draw a solid color to the current target at the specified destination with the specified color.
+-    #[instrument(level = "trace", skip(self), parent = &self.span)]
+-    #[profiling::function]
++    pub fn has_tex_program_override(&self) -> bool {
++        !self.tex_program_override.is_empty()
++    }
++
++    pub fn append_tex_program_override_uniforms(
++        &mut self,
++        uniforms: Vec<Uniform<'static>>,
++    ) -> usize {
++        let count = uniforms.len();
++        if let Some((_, existing)) = self.tex_program_override.last_mut() {
++            existing.extend(uniforms);
++        }
++        count
++    }
++
++    pub fn truncate_tex_program_override_uniforms(&mut self, count: usize) {
++        if let Some((_, existing)) = self.tex_program_override.last_mut() {
++            let new_len = existing.len().saturating_sub(count);
++            existing.truncate(new_len);
++        }
++    }
++}
++
++impl GlesFrame<'_, '_> {
+     pub fn draw_solid(
+         &mut self,
+         dest: Rectangle<i32, Physical>,
+@@ -2764,7 +2788,7 @@ impl GlesFrame<'_, '_> {
+         // also have cleared the region previously anyway. In case we have
+         // no opaque regions we can also short cut the logic a bit.
+         let is_implicit_opaque = !texture.0.has_alpha && alpha == 1f32;
+-        if is_implicit_opaque && program.is_none() && self.tex_program_override.is_none() {
++        if is_implicit_opaque && program.is_none() && self.tex_program_override.is_empty() {
+             opaque_damage.extend_from_slice(damage);
+         } else if alpha != 1f32 || opaque_regions.is_empty() {
+             non_opaque_damage.extend_from_slice(damage);
+@@ -2889,7 +2913,7 @@ impl GlesFrame<'_, '_> {
+         };
+         let (tex_program, additional_uniforms) = program
+             .map(|p| (p, additional_uniforms))
+-            .or_else(|| self.tex_program_override.as_ref().map(|(p, a)| (p, &**a)))
++            .or_else(|| self.tex_program_override.last().map(|(p, a)| (p, &**a)))
+             .unwrap_or((&self.renderer.tex_program, &[]));
+         let program_variant = tex_program.variant_for_format(
+             if !tex.0.is_external { tex.0.format } else { None },

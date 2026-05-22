@@ -21,6 +21,16 @@ uniform float u_max_nits;
 uniform float u_sdr_color_intensity;
 uniform int u_gamut_mapping_mode;  // 0=desaturate, 1=clip, 2=relative
 uniform int u_transfer_function;  // 0=PQ (ST 2084), 1=HLG (ARIB STD-B67)
+uniform int u_icc_enabled;  // 0=disabled, 1=enabled
+uniform mat3 u_icc_matrix;  // sRGB→ICC display color space matrix
+
+// Corner clipping uniforms (ignored when geo_size.x == 0)
+uniform float niri_scale;
+uniform vec2 geo_size;
+uniform vec4 corner_radius;
+uniform mat3 input_to_geo;
+
+float niri_rounding_alpha(vec2 coords, vec2 size, vec4 corner_radius);
 
 #if defined(DEBUG_FLAGS)
 uniform float tint;
@@ -149,6 +159,16 @@ void main() {
     vec3 src_srgb = (texel.a > 0.001) ? texel.rgb / texel.a : vec3(0.0);
 #endif
 
+    // Apply corner clipping when geo_size is set (ClippedSurfaceRenderElement).
+    if (geo_size.x > 0.0) {
+        vec3 coords_geo = input_to_geo * vec3(v_coords, 1.0);
+        if (coords_geo.x < 0.0 || 1.0 < coords_geo.x || coords_geo.y < 0.0 || 1.0 < coords_geo.y) {
+            src_alpha = 0.0;
+        } else {
+            src_alpha *= niri_rounding_alpha(coords_geo.xy * geo_size, geo_size, corner_radius);
+        }
+    }
+
     // Convert source sRGB to linear BT.2020 (normalized [0,1]).
     vec3 src_linear = vec3(
         srgb_to_linear(src_srgb.r),
@@ -156,7 +176,14 @@ void main() {
         srgb_to_linear(src_srgb.b)
     );
     src_linear = expand_gamut(src_linear, u_sdr_color_intensity);
-    src_linear = srgb_to_bt2020(src_linear);
+    
+    // Apply ICC profile color correction when available, otherwise use BT.2020.
+    if (u_icc_enabled == 1) {
+        src_linear = u_icc_matrix * src_linear;
+    } else {
+        src_linear = srgb_to_bt2020(src_linear);
+    }
+    
     src_linear = gamut_map(src_linear, u_gamut_mapping_mode);
 
     // Scale to nits AFTER gamut mapping (which expects [0,1] values).

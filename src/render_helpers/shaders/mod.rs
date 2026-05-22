@@ -152,13 +152,23 @@ impl Shaders {
 
         let hdr_output = renderer
             .compile_custom_texture_shader(
-                include_str!("hdr_output.frag"),
+                concat!(
+                    include_str!("hdr_output.frag"),
+                    "\n",
+                    include_str!("rounding_alpha.frag"),
+                ),
                 &[
                     UniformName::new("u_sdr_brightness_nits", UniformType::_1f),
                     UniformName::new("u_max_nits", UniformType::_1f),
                     UniformName::new("u_sdr_color_intensity", UniformType::_1f),
                     UniformName::new("u_gamut_mapping_mode", UniformType::_1i),
                     UniformName::new("u_transfer_function", UniformType::_1i),
+                    UniformName::new("u_icc_enabled", UniformType::_1i),
+                    UniformName::new("u_icc_matrix", UniformType::Matrix3x3),
+                    UniformName::new("niri_scale", UniformType::_1f),
+                    UniformName::new("geo_size", UniformType::_2f),
+                    UniformName::new("corner_radius", UniformType::_4f),
+                    UniformName::new("input_to_geo", UniformType::Matrix3x3),
                 ],
             )
             .map_err(|err| {
