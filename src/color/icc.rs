@@ -390,14 +390,25 @@ impl IccProfile {
     /// Returns a 3×3 matrix where `output = matrix * input`. The matrix is in row-major
     /// order for GLSL (i.e., `result[i] = sum(matrix[i][j] * input[j])`).
     pub fn srgb_correction_matrix(&self) -> Option<[[f64; 3]; 3]> {
-        // If display primaries are very close to sRGB, no correction needed.
-        let srgb = srgb_primaries();
-        let srgb_white = d65_whitepoint();
+        // ICC profile primaries are ALREADY scaled XYZ columns.
+        // The columns sum to the white point, so no additional scaling is needed.
+        let display_to_xyz = [
+            [self.primaries[0].x, self.primaries[1].x, self.primaries[2].x],
+            [self.primaries[0].y, self.primaries[1].y, self.primaries[2].y],
+            [self.primaries[0].z, self.primaries[1].z, self.primaries[2].z],
+        ];
         
-        build_color_space_matrix(
-            &srgb, &srgb_white,
-            &self.primaries, &self.white_point,
-        )
+        let xyz_to_display = invert_matrix(&display_to_xyz)?;
+        
+        // Standard sRGB to XYZ (D65) matrix from ICC spec.
+        let srgb_to_xyz: [[f64; 3]; 3] = [
+            [0.4124564, 0.3575761, 0.1804375],
+            [0.2126729, 0.7151522, 0.0721750],
+            [0.0193339, 0.1191920, 0.9503041],
+        ];
+        
+        // First convert sRGB to XYZ, then XYZ to display RGB.
+        Some(multiply_matrices(&xyz_to_display, &srgb_to_xyz))
     }
     
     /// Build a color correction matrix that maps sRGB colors to BT.2020.

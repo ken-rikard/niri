@@ -2249,8 +2249,16 @@ impl Tty {
         // Get ICC profile matrix if available.
         let icc_matrix = niri.output_state.get(output)
             .and_then(|state| state.icc_profile.as_ref())
-            .and_then(|profile| profile.srgb_correction_matrix())
-            .map(|matrix| crate::color::icc::IccProfile::matrix_to_f32(&matrix));
+            .and_then(|profile| {
+                let matrix = profile.srgb_correction_matrix()?;
+                let m32 = crate::color::icc::IccProfile::matrix_to_f32(&matrix);
+                info!("ICC matrix for {}: [{:.3} {:.3} {:.3}] [{:.3} {:.3} {:.3}] [{:.3} {:.3} {:.3}]",
+                      name.connector,
+                      m32[0][0], m32[0][1], m32[0][2],
+                      m32[1][0], m32[1][1], m32[1][2],
+                      m32[2][0], m32[2][1], m32[2][2]);
+                Some(m32)
+            });
 
         // Wrap each element with the HDR shader - no offscreen texture needed.
         // The DRM compositor handles all damage tracking natively.
