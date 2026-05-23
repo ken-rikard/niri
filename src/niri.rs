@@ -455,6 +455,8 @@ pub struct OutputState {
     pub hdr_enabled: bool,
     /// Parsed ICC profile for color-accurate rendering, if configured.
     pub icc_profile: Option<crate::color::icc::IccProfile>,
+    /// HDR capabilities extracted from EDID, if the display advertises them.
+    pub hdr_edid_caps: Option<crate::calibration::edid::HdrEdidCapabilities>,
     // After the last redraw, some ongoing animations still remain.
     pub unfinished_animations_remain: bool,
     /// Last sequence received in a vblank event.
@@ -1770,6 +1772,12 @@ impl State {
             let backdrop_color = Color32F::from(backdrop_color);
 
             if let Some(state) = self.niri.output_state.get_mut(output) {
+                // Log current HDR config for this output on reload.
+                if let Some(ref hdr) = config.and_then(|c| c.hdr.as_ref()) {
+                    warn!("Config reload: {} has HDR enabled={}, max_lum={:?}, sdr_intensity={:?}", 
+                          name.connector, hdr.enabled, hdr.max_luminance, hdr.sdr_color_intensity);
+                }
+
                 // Update HDR enabled state from config.
                 let new_hdr_enabled = config
                     .and_then(|c| c.hdr.as_ref())
@@ -3029,6 +3037,7 @@ impl Niri {
             on_demand_vrr_enabled: false,
             hdr_enabled,
             icc_profile,
+            hdr_edid_caps: None,
             unfinished_animations_remain: false,
             frame_clock: FrameClock::new(refresh_interval, vrr),
             last_drm_sequence: None,

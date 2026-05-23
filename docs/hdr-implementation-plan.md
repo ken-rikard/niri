@@ -15,12 +15,17 @@ Core HDR pipeline is functional:
 - ✅ **SDR color intensity (gamut expansion)** — configurable 0.0–2.0
 - ✅ **sRGB→BT.2020 color matrix** (corrected column-major order)
 - ✅ **IPC support** for runtime HDR enable/disable and parameter changes
+- ✅ **ICC profile color correction** — Per-display ICC v2/v4 profile loading and matrix application in HDR shader
+- ✅ **EDID auto-configuration** — Auto-detect display HDR capabilities from EDID and use as defaults
+- ✅ **Multiline HDR config** — `hdr { enabled max-luminance 730.0 ... }` child-node syntax
+- ✅ **Passthrough shader framebuffer fetch** — Correct alpha blending for HDR-native content
 
 ### Architecture
 
 The HDR rendering uses a **per-element shader override** architecture:
 - Each `OutputRenderElements` is wrapped in `HdrWrappedElement`
 - The wrapper calls `override_default_tex_program()` before drawing each element
+- **Stackable overrides** — When `ClippedSurfaceRenderElement` (rounded corners) needs its own program, it appends uniforms to the existing HDR override instead of replacing it (requires Smithay patch)
 - The DRM compositor handles damage tracking natively (no extra offscreen pass)
 - `GL_EXT_shader_framebuffer_fetch` decodes the PQ framebuffer and blends in linear light
 - Result: **same performance as SDR rendering** — no extra FBO bind or GPU sync
@@ -153,31 +158,75 @@ The HDR rendering uses a **per-element shader override** architecture:
 
 ---
 
-## Phase 3: ICC Profile Support
+## Phase 3: ICC Profile Support — ✅ COMPLETE
 
 **Priority:** 🟡 MEDIUM  
 **Impact:** Color-accurate SDR rendering on wide-gamut displays  
 **Effort:** ~4-5 days  
-**Status:** ✅ Implemented (basic matrix-based correction)
+**Status:** ✅ Implemented, tested, and merged into `feature/hdr-support`
 
-### 3.1 ICC Profile Loading
+### What Was Done
 
-**New file:** `src/color/icc.rs`
+1. **ICC Profile Parser** (`src/color/icc.rs`)
+   - Parse ICC v2 and v4 profiles (header, tag table, rXYZ/gXYZ/bXYZ/wtpt)
+   - Extract color primaries and white point from profile
+   - Compute sRGB→Display color correction matrix using linear algebra
+   - Standard sRGB→XYZ(D65) + Bradford D65→D50 adaptation
+   - Supports path expansion (`~` → `$HOME`)
 
-- ✅ Parse ICC profiles (v2 and v4) — header, tag table, rXYZ/gXYZ/bXYZ/wtpt
-- ✅ Extract color primaries and white point
-- ✅ Compute sRGB→Display color correction matrix using linear algebra
-- ✅ Support path expansion (`~` → `$HOME`)
+2. **Config Support** (`niri-config/src/output.rs`)
+   ```kdl
+   output "HDMI-A-1" {
+       icc-profile "/usr/share/color/icc/colord/sRGB.icc"
+   }
+   ```
+   - `icc_profile: Option<String>` on output config
+   - Loaded when output connects in `add_output()`
+   - Stored parsed profile in `OutputState`
 
-### 3.2 Config Support
+3. **ICC Profile Shader Integration** (`src/render_helpers/shaders/hdr_output.frag`)
+   - `u_icc_enabled` (int) and `u_icc_matrix` (mat3) uniforms
+   - Replaces BT.2020 matrix with ICC-derived matrix when enabled
+   - Matrix passed as column-major 3×3 GLSL uniform
+   - Applied in per-element render path
 
-**Files:** `niri-config/src/output.rs`
+4. **IPC Toggle** (`niri-ipc/src/lib.rs`, `src/niri.rs`)
+   - `niri msg output HDMI-A-1 icc true` — enable profile at runtime
+   - `niri msg output HDMI-A-1 icc false` — disable profile at runtime
+   - Only works when profile is configured in config; unspecified fields retain previous values
 
-```kdl
-output "HDMI-A-1" {
-    icc-profile "/usr/share/color/icc/colord/sRGB.icc"
-}
-```
+5. **Critical Bug Fix — Clipped Windows** (`src/render_helpers/clipped_surface.rs`)
+   - **Problem:** `ClippedSurfaceRenderElement` (rounded corners) overwrote HDR shader override with its own corner-clipping shader, causing ICC/hdr to bypass on browser/terminal windows
+   - **Fix:** Smithay patch to make `tex_program_override` stackable (`Vec` push/pop). `ClippedSurfaceRenderElement` now appends corner uniforms to existing HDR override when active.
+   - `hdr_output.frag` merged with `rounding_alpha.frag` for conditional corner clipping
+   - `HdrWrappedElement` passes default no-op corner uniforms for non-clipped surfaces
+
+6. **Shader Memory Leak Fix**
+   - `shaders::init()` was recompiling GLSL every frame → 38GB OOM crash
+   - Made idempotent by checking if shaders already exist before compiling
+
+### Testing Results
+
+- ✅ Build: `cargo build --release` successful
+- ✅ Test on real HDR display: ICC produces visible color difference (pure red shifts measurably)
+- ✅ Semi-transparent windows: No regression
+- ✅ Clipped windows (browser, terminal): ICC now applies correctly after stackable override fix
+- ✅ IPC partial updates: `niri msg output HDMI-A-1 icc true` works, queues redraw automatically
+- ✅ Gamma control disabled when HDR active
+
+### Files Added/Modified
+
+- **New:** `src/color/icc.rs` — ICC parser and matrix computation
+- **New:** `src/color/mod.rs` — Color module root
+- **New:** `patches/smithay-tex-program-override-stack.patch` — Smithay patch doc
+- **Modified:** `src/render_helpers/shaders/hdr_output.frag` — Added ICC uniforms + corner clipping
+- **Modified:** `src/render_helpers/shaders/mod.rs` — Compile `rounding_alpha.frag` into `hdr_output`
+- **Modified:** `src/render_helpers/hdr_output.rs` — Pass default no-op corner uniforms
+- **Modified:** `src/render_helpers/clipped_surface.rs` — Append uniforms instead of replacing program
+- **Modified:** `src/backend/tty.rs` — ICC matrix retrieval, dynamic metadata
+- **Modified:** `src/niri.rs` — `add_output()` ICC loading, `apply_transient_output_config()` ICC toggle, `OutputState`
+- **Modified:** `niri-config/src/output.rs` — `icc-profile` child node
+- **Modified:** `niri-ipc/src/lib.rs` — `OutputAction::Icc` enum
 
 - ✅ Add `icc_profile: Option<String>` to output config
 - ✅ Load profile when output connects
@@ -377,23 +426,81 @@ output "HDMI-A-1" {
 
 ---
 
-## Phase 10: HDR Calibration Wizard
+## Phase 10: HDR Calibration Wizard — 🚧 IN PROGRESS
 
 **Priority:** 🔵 FUTURE  
 **Impact:** User-friendly HDR setup  
 **Effort:** ~3-4 days
 
-### 10.1 Calibration UI
+### 10.1 Calibration UI — ⏳ NOT STARTED
 
-- Create test patterns for HDR calibration
-- Guide user through brightness/contrast setup
+- Visual test patterns for HDR calibration (black level, peak white, gray ramp, primaries)
+- Step-through wizard via IPC or keybinding
+- Fine-tuned recommendations beyond EDID defaults
 - Save calibration results to config
 
-### 10.2 EDID Parsing
+### 10.2 EDID Parsing — ✅ COMPLETE (Phase 10A)
 
-- Parse display EDID for HDR capabilities
-- Extract mastering display info
-- Auto-configure optimal settings
+**Status:** ✅ Implemented, tested on real hardware
+
+**Files:** `src/calibration/edid.rs`, `src/backend/tty.rs`
+
+- Parse display EDID for HDR capabilities via `libdisplay_info::Info::hdr_static_metadata()`
+- Extract: `desired_content_max_luminance`, `desired_content_min_luminance`, `desired_content_max_frame_avg_luminance`
+- Detect supported EOTFs: PQ (traditional_hdr), HLG (hlg)
+- Auto-configure optimal settings when config omits `max-luminance`, `min-luminance`, `max-cll`, `max-fall`
+- Display capabilities logged on output connect with suggested KDL config block
+- Config values always take priority over EDID (allows user override)
+
+**Testing Results:**
+- ✅ DP-3 (ultrawide): EDID correctly detected `max_lum=1015.2, min_lum=0.051, max_fall=603.7`
+- ✅ HDMI-A-1 (LG OLED 42"): EDID reports no HDR Static Metadata block — manual config required
+- ✅ IPC changes correctly isolated per-output
+- ✅ Config reload path verified working
+
+**Config Syntax Change:**
+HDR properties are now child nodes (not inline properties):
+```kdl
+output "HDMI-A-1" {
+    hdr {
+        enabled
+        max-luminance 730.0
+        min-luminance 0.0005
+        max-cll 730.0
+        max-fall 350.0
+        sdr-brightness 300.0
+        sdr-color-intensity 1.2
+        passthrough-apps "mpv,kodi,firefox"
+        gamut-mapping "desaturate"
+    }
+}
+```
+
+**Known Issues:**
+- Duplicate `output` blocks in config (e.g., main file + include) cause last-one-wins behavior
+- Some OLED TVs over HDMI omit HDR metadata in EDID despite supporting HDR
+
+### Usage
+
+```bash
+# Check EDID-detected capabilities in logs:
+journalctl --user -f -u niri | grep "EDID HDR"
+
+# Minimal config (uses EDID defaults):
+output "DP-3" {
+    hdr { enabled }
+}
+
+# Manual config for displays with incomplete EDID:
+output "HDMI-A-1" {
+    hdr {
+        enabled
+        max-luminance 730.0
+        min-luminance 0.0005
+        sdr-brightness 300.0
+    }
+}
+```
 
 ---
 
@@ -416,14 +523,17 @@ output "HDMI-A-1" {
 |-------|-----------|----------------|
 | 1 | - | `hdr_output.frag`, `hdr_output.rs`, `tty.rs`, `output.rs`, `lib.rs` |
 | 2 | - | `color_management.rs`, `mod.rs` (handlers), `tty.rs` |
-| 3 | `icc.rs`, `icc_profile.frag` | `output.rs`, `lib.rs`, `mod.rs`, `tty.rs` |
+| 3 | `icc.rs`, `color/mod.rs` | `output.rs`, `lib.rs`, `tty.rs`, `hdr_output.frag`, `hdr_output.rs`, `clipped_surface.rs`, `shaders/mod.rs`, `niri.rs` |
 | 4 | - | `hdr_output.frag`, `hdr_output.rs`, `tty.rs`, `niri.rs`, `output.rs`, `lib.rs`, `shaders/mod.rs` |
 | 5 | - | `tty.rs` |
 | 6 | - | `hdr_output.frag`, `hdr_output.rs`, `tty.rs`, `niri.rs`, `output.rs`, `lib.rs`, `shaders/mod.rs` |
-| 7 | - | `tty.rs` |
-| 8 | Vulkan layer code | Multiple |
-| 9 | X11 atom handling | Multiple |
-| 10 | Calibration UI | Multiple |
+| 10 | `calibration/edid.rs`, `calibration/mod.rs` | `tty.rs`, `niri.rs`, `Cargo.toml` |
+
+### External Patches
+
+| Patch | Location | Purpose |
+|-------|----------|---------|
+| `smithay-tex-program-override-stack.patch` | `.cargo/git/checkouts/smithay-*/src/backend/renderer/gles/mod.rs` | Makes `tex_program_override` stackable for clipped window + HDR coexistence |
 
 ---
 
@@ -479,6 +589,7 @@ Previous architectures tried and rejected:
 | `feature/hdr-icc-profiles` | `cf45cbf3` | Phase 3: ICC profile support (rebased) |
 | `feature/hdr-dynamic-meta` | `0cad31be` | Phase 5: Dynamic metadata (✅ implemented, ⚠️ untested) |
 | `feature/hdr-hlg` | `80960ce0` | Phase 6: HLG support (✅ merged into hdr-support) |
+| `feature/hdr-calibration-wizard` | current | Phase 10: Calibration wizard (10A EDID ✅ complete, 10.1 UI ⏳ pending) |
 
 ---
 

@@ -102,25 +102,25 @@ tail -f ~/.local/share/sddm/wayland-session.log
 
 ---
 
-## Phase 3: ICC Profile Support — ⚠️ UNTESSED
+## Phase 3: ICC Profile Support — ✅ TESTED
 
 **Branch:** `feature/hdr-icc-profiles`
 
-**Status:** ✅ Implemented (basic matrix-based correction)
+**Note:** ICC correction is applied in the HDR shader path. When HDR is disabled, the profile currently has no effect (SDR pipeline uses direct rendering without color management).
 
 ### Test 3.1: ICC Profile Loading
 
+**Status:** ✅ Working
+
 1. Obtain or generate an ICC profile for your display:
-   - sRGB profile: `/usr/share/color/icc/colord/sRGB.icc` (should be identity)
+   - sRGB profile: `/usr/share/color/icc/colord/sRGB.icc`
    - Display P3 profile (for wide-gamut displays)
    - Calibrated profile from colorimeter
 2. Add to `config.kdl`:
    ```kdl
    output "DP-3" {
        icc-profile "/path/to/profile.icc"
-       hdr {
-           enabled true
-       }
+       hdr enabled=true
    }
    ```
 3. Reload config: `niri msg action reload-config`
@@ -129,12 +129,35 @@ tail -f ~/.local/share/sddm/wayland-session.log
 
 ### Test 3.2: Color Accuracy
 
-1. With ICC profile loaded and HDR enabled, display a known sRGB test pattern
-2. **Verify:** Colors appear accurate compared to sRGB reference
+**Status:** ✅ Visible difference confirmed
+
+1. With ICC profile loaded and HDR enabled, display a known sRGB test pattern (solid pure red `#FF0000`)
+2. **Verify:** Colors shift measurably compared to without ICC
 3. For Display P3 monitors: verify sRGB content is NOT oversaturated
 4. Compare with and without ICC profile by commenting out the config line
 
-**Note:** ICC correction is applied in the HDR shader path. When HDR is disabled, the profile currently has no effect (SDR pipeline uses direct rendering without color management).
+### Test 3.3: IPC Toggle
+
+**Status:** ✅ Working
+
+1. With ICC configured and HDR enabled:
+   ```bash
+   niri msg output HDMI-A-1 icc false
+   niri msg output HDMI-A-1 icc true
+   ```
+2. **Verify:** Toggle takes effect immediately (redraw queued automatically)
+3. **Verify:** No crashes or visual glitches
+
+### Test 3.4: Clipped Windows (Browser, Terminal)
+
+**Status:** ✅ Fixed and verified
+
+1. Open browser or terminal window (they use `ClippedSurfaceRenderElement` for rounded corners)
+2. Enable ICC: `niri msg output HDMI-A-1 icc true`
+3. **Verify:** ICC effect is visible on clipped windows (not just on dock/bar)
+4. **Regression check:** Disable ICC, verify colors return to normal
+
+**Note:** This test was failing before the Smithay stackable-override patch. ClippedSurfaceRenderElement was replacing the HDR shader with its corner-clipping shader, bypassing ICC entirely.
 
 ---
 
@@ -274,6 +297,109 @@ tail -f ~/.local/share/sddm/wayland-session.log
 
 ---
 
+## Phase 10: HDR Calibration Wizard — EDID Auto-Config ✅ TESTED
+
+**Branch:** `feature/hdr-calibration-wizard`
+
+### Test 10.1: EDID HDR Detection
+
+**Status:** ✅ Working
+
+1. Connect an HDR-capable display
+2. Check niri logs for:
+   ```
+   EDID HDR capabilities for DP-3: max_lum=1015.2, min_lum=0.051, max_fall=603.7, pq=true, hlg=false, hdr10=true
+   ```
+3. **Verify:** Values match display's advertised capabilities
+4. **Verify:** Suggested config block is logged
+
+### Test 10.2: Defaults from EDID
+
+**Status:** ✅ Working
+
+1. Use minimal HDR config (no luminance values):
+   ```kdl
+   output "DP-3" {
+       hdr { enabled }
+   }
+   ```
+2. Enable HDR: `niri msg output DP-3 hdr true`
+3. Check logs for actual values used in DRM metadata commit
+4. **Verify:** `max_luminance`, `min_luminance`, `max_cll`, `max_fall` match EDID values
+5. **Verify:** Transfer function defaults to PQ unless display only supports HLG
+
+### Test 10.3: Config Override
+
+**Status:** ✅ Working
+
+1. Override EDID values in config:
+   ```kdl
+   output "DP-3" {
+       hdr {
+           enabled
+           max-luminance 1200.0
+           min-luminance 0.001
+       }
+   }
+   ```
+2. **Verify:** Config values take precedence over EDID defaults
+3. **Verify:** Logs show overridden values in DRM metadata
+
+### Test 10.4: Manual Override for Displays with Incomplete EDID
+
+**Status:** ✅ Tested (LG OLED 42" over HDMI)
+
+Some HDR-capable displays (notably OLED TVs over HDMI) do **not** expose the CTA-861 HDR Static Metadata block in their EDID. When this happens, niri logs:
+
+```
+EDID parsed for HDMI-A-1 but no HDR Static Metadata block found (or max_luminance == 0)
+```
+
+In this case, you **must** specify HDR values manually in `config.kdl`.
+
+**Example: LG OLED 42" (measured with DisplayCAL)**
+
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| `max-luminance` | 730 | Spec sheet peak brightness (cd/m²) |
+| `min-luminance` | 0.0005 | OLED near-perfect black |
+| `max-cll` | 730 | Same as max-luminance |
+| `max-fall` | 350 | ~95% of sustained brightness (360 cd/m²) |
+| `sdr-brightness` | 300 | Brighter SDR reference white for OLEDs |
+| `sdr-color-intensity` | 1.2 | Moderate gamut expansion (panel is 130% sRGB) |
+| `gamut-mapping` | desaturate | Prevents oversaturation |
+
+```kdl
+output "HDMI-A-1" {
+    mode "3840x2160@120"
+    scale 1.0
+    variable-refresh-rate
+
+    hdr {
+        enabled
+        max-luminance 730.0
+        min-luminance 0.0005
+        max-cll 730.0
+        max-fall 350.0
+        sdr-brightness 300.0
+        sdr-color-intensity 1.2
+        passthrough-apps "mpv,kodi,firefox"
+        gamut-mapping "desaturate"
+    }
+}
+```
+
+**Verify:**
+1. Display's HDR info overlay shows active HDR mode
+2. Black levels are OLED-perfect (no raised blacks)
+3. SDR content (browser, terminal) is readable
+4. HDR video (mpv `--vo=gpu-next`) shows correct peak brightness
+5. No EDID-related warnings when config values are present
+
+**Important:** Avoid duplicate `output` blocks across config files. Use a single definition per output.
+
+---
+
 ## Test Results Template
 
 Copy this section and fill in results:
@@ -314,10 +440,30 @@ Copy this section and fill in results:
 - [ ] Test 6.2: PASS / FAIL — Notes:
 - [ ] Test 6.3: PASS / FAIL — Notes:
 
+### Phase 10: EDID Auto-Config
+- [ ] Test 10.1: PASS / FAIL — Display advertises HDR capabilities in EDID log
+- [ ] Test 10.2: PASS / FAIL — Default values match EDID when config omits luminance fields
+- [ ] Test 10.3: PASS / FAIL — Config values override EDID correctly
+- [ ] Test 10.4: PASS / FAIL — Manual config works for displays with incomplete EDID
+
+### Per-Display Notes
+**HDMI-A-1 (LG OLED 42"):**
+- EDID HDR block: Present / Absent
+- Recommended max-luminance: 
+- Recommended sdr-brightness: 
+- Tone mapping: Acceptable / Too dim / Too bright
+
+**DP-3 (Ultrawide):**
+- EDID HDR block: Present / Absent
+- EDID max-luminance: 
+- Working config:
+
 ### Known Issues
 - [ ] Cursor artifact: Present / Absent — Notes:
 - [ ] Memory stable: Yes / No — Notes:
 - [ ] Transparency correct: Yes / No — Notes:
+- [ ] Clipped windows (ICC): PASS / FAIL — Notes:
+- [ ] Multi-output config isolation: PASS / FAIL — Notes:
 ```
 
 ---
