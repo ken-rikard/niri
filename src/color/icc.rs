@@ -417,10 +417,6 @@ impl IccProfile {
             display_to_xyz[1][0] + display_to_xyz[1][1] + display_to_xyz[1][2],
             display_to_xyz[2][0] + display_to_xyz[2][1] + display_to_xyz[2][2],
         ];
-        info!("ICC white check: expected=[{:.3},{:.3},{:.3}], got=[{:.3},{:.3},{:.3}]",
-            d50.x, d50.y, d50.z,
-            white_from_primaries[0], white_from_primaries[1], white_from_primaries[2]);
-        
         let xyz_to_display = invert_matrix(&display_to_xyz)?;
         
         // Standard sRGB to XYZ (D65) matrix.

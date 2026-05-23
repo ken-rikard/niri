@@ -1280,7 +1280,7 @@ impl Tty {
         crtc: crtc::Handle,
     ) -> anyhow::Result<()> {
         let connector_name = format_connector_name(&connector);
-        debug!("connecting connector: {connector_name}");
+        warn!("connecting connector: {connector_name}");
 
         let device = self.devices.get_mut(&node).context("missing device")?;
 
@@ -1310,6 +1310,37 @@ impl Tty {
             .find(&output_name)
             .cloned()
             .unwrap_or_default();
+
+        // Extract HDR capabilities from EDID for auto-configuration.
+        let hdr_edid_caps = match get_edid_info(&device.drm, connector.handle()) {
+            Ok(info) => {
+                match crate::calibration::edid::HdrEdidCapabilities::from_edid(&info) {
+                    Some(caps) => {
+                        info!(
+                            "EDID HDR capabilities for {}: max_lum={:.1}, min_lum={:.3}, max_fall={:.1}, pq={}, hlg={}, hdr10={}",
+                            connector_name,
+                            caps.max_luminance,
+                            caps.min_luminance,
+                            caps.max_fall,
+                            caps.supports_pq,
+                            caps.supports_hlg,
+                            caps.supports_hdr10
+                        );
+                        let suggested = crate::calibration::edid::generate_hdr_config(&connector_name, &caps);
+                        info!("Suggested HDR config for {}:\n{}", connector_name, suggested);
+                        Some(caps)
+                    }
+                    None => {
+                        warn!("EDID parsed for {} but no HDR Static Metadata block found (or max_luminance == 0)", connector_name);
+                        None
+                    }
+                }
+            }
+            Err(err) => {
+                warn!("Failed to get/parse EDID for {}: {err:?}", connector_name);
+                None
+            }
+        };
 
         for m in connector.modes() {
             trace!("{m:?}");
@@ -1348,21 +1379,29 @@ impl Tty {
 
         let mut orientation = None;
         let mut hdr_cfg_enabled = false;
-        let mut hdr_max_lum = 1000.0;
-        let mut hdr_min_lum = 0.005;
-        let mut hdr_max_cll = 1000.0;
-        let mut hdr_max_fall = 400.0;
+        // Use EDID HDR metadata as defaults when available, falling back to safe assumptions.
+        let edid_max_lum = hdr_edid_caps.map(|c| c.max_luminance as f64);
+        let edid_min_lum = hdr_edid_caps.map(|c| c.min_luminance as f64);
+        let edid_max_fall = hdr_edid_caps.map(|c| c.max_fall as f64);
+        let mut hdr_max_lum = edid_max_lum.unwrap_or(1000.0);
+        let mut hdr_min_lum = edid_min_lum.unwrap_or(0.005);
+        let mut hdr_max_cll = edid_max_lum.unwrap_or(1000.0);
+        let mut hdr_max_fall = edid_max_fall.unwrap_or(400.0);
         let mut hdr_colorspace = DRM_MODE_COLORIMETRY_BT2020_RGB;
-        let mut hdr_transfer_function: i32 = 0; // 0=PQ, 1=HLG
+        let mut hdr_transfer_function: i32 = if hdr_edid_caps.map_or(false, |c| !c.supports_pq && c.supports_hlg) {
+            1 // HLG
+        } else {
+            0 // PQ
+        };
         if let Ok(props) = ConnectorProperties::try_new(&device.drm, connector.handle()) {
             debug!("connector properties available, checking HDR config");
             if let Some(ref hdr_cfg) = config.hdr {
                 debug!("HDR config found: enabled={}, max_luminance={:?}", hdr_cfg.enabled, hdr_cfg.max_luminance);
                 hdr_cfg_enabled = hdr_cfg.enabled;
-                hdr_max_lum = hdr_cfg.max_luminance.unwrap_or(1000.0);
-                hdr_min_lum = hdr_cfg.min_luminance.unwrap_or(0.005);
+                hdr_max_lum = hdr_cfg.max_luminance.unwrap_or(hdr_max_lum);
+                hdr_min_lum = hdr_cfg.min_luminance.unwrap_or(hdr_min_lum);
                 hdr_max_cll = hdr_cfg.max_cll.unwrap_or(hdr_max_lum);
-                hdr_max_fall = hdr_cfg.max_fall.unwrap_or(hdr_max_lum * 0.4);
+                hdr_max_fall = hdr_cfg.max_fall.unwrap_or(hdr_max_fall);
                 if let Some(cs) = hdr_cfg.colorspace {
                     hdr_colorspace = colorspace_from_config(cs);
                 }
@@ -1373,7 +1412,7 @@ impl Tty {
                     };
                 }
             } else {
-                debug!("no HDR config found for this output");
+                debug!("no HDR config found for this output, using EDID defaults");
             }
 
             match get_panel_orientation(&props) {
@@ -1642,6 +1681,13 @@ impl Tty {
         assert!(res.is_none(), "crtc must not have already existed");
 
         niri.add_output(output.clone(), Some(refresh_interval(mode)), vrr_enabled, hdr_enabled);
+
+        // Store EDID HDR capabilities in output state for later reference.
+        if let Some(caps) = hdr_edid_caps {
+            if let Some(state) = niri.output_state.get_mut(&output) {
+                state.hdr_edid_caps = Some(caps);
+            }
+        }
 
         if niri.monitors_active {
             // Redraw the new monitor.
@@ -2193,6 +2239,9 @@ impl Tty {
             None
         });
 
+        warn!("HDR render for {}: sdr_brightness={} nits, max_nits={} nits, sdr_intensity={}, gamut={}, tf={}", 
+              name.connector, sdr_brightness_nits, max_nits, sdr_color_intensity, gamut_mapping_mode, transfer_function);
+
         // Get passthrough app list from config.
         let passthrough_apps: Vec<String> = hdr_cfg
             .as_ref()
@@ -2252,11 +2301,6 @@ impl Tty {
             .and_then(|profile| {
                 let matrix = profile.srgb_correction_matrix()?;
                 let m32 = crate::color::icc::IccProfile::matrix_to_f32(&matrix);
-                info!("ICC matrix for {}: [{:.3} {:.3} {:.3}] [{:.3} {:.3} {:.3}] [{:.3} {:.3} {:.3}]",
-                      name.connector,
-                      m32[0][0], m32[0][1], m32[0][2],
-                      m32[1][0], m32[1][1], m32[1][2],
-                      m32[2][0], m32[2][1], m32[2][2]);
                 Some(m32)
             });
 

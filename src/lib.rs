@@ -5,6 +5,7 @@ extern crate tracing;
 pub mod a11y;
 pub mod animation;
 pub mod backend;
+pub mod calibration;
 pub mod cli;
 pub mod color;
 pub mod cursor;

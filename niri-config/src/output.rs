@@ -89,42 +89,33 @@ pub struct Output {
 
 #[derive(knuffel::Decode, Debug, Clone, PartialEq)]
 pub struct HdrOutput {
-    #[knuffel(property, default = false)]
+    #[knuffel(child, default = false)]
     pub enabled: bool,
-    #[knuffel(property)]
+    #[knuffel(child, unwrap(argument))]
     pub max_luminance: Option<f64>,
-    #[knuffel(property)]
+    #[knuffel(child, unwrap(argument))]
     pub min_luminance: Option<f64>,
-    #[knuffel(property)]
+    #[knuffel(child, unwrap(argument))]
     pub max_cll: Option<f64>,
-    #[knuffel(property)]
+    #[knuffel(child, unwrap(argument))]
     pub max_fall: Option<f64>,
-    #[knuffel(property)]
+    #[knuffel(child, unwrap(argument))]
     pub sdr_brightness: Option<f64>,
     /// SDR color intensity (gamut expansion factor). 0.0 to 2.0, default 1.0.
-    /// Values > 1.0 make SDR colors more vivid by expanding the chroma.
-    /// Values < 1.0 desaturate SDR content.
-    #[knuffel(property)]
+    #[knuffel(child, unwrap(argument))]
     pub sdr_color_intensity: Option<f64>,
     /// Comma-separated list of app-ids that output native HDR content.
-    /// These apps bypass SDR->HDR conversion.
-    /// Example: passthrough-apps="mpv,kodi,vlc"
-    #[knuffel(property)]
+    #[knuffel(child, unwrap(argument, str))]
     pub passthrough_apps: Option<String>,
-    /// Gamut mapping mode for handling out-of-gamut colors after BT.2020 conversion.
-    /// - "desaturate": reduce saturation for out-of-gamut colors (default, KWin behavior)
-    /// - "clip": simple clamping to [0, 1]
-    /// - "relative": preserve color relationships while compressing gamut
-    #[knuffel(property, str)]
+    /// Gamut mapping mode: "desaturate", "clip", or "relative".
+    #[knuffel(child, unwrap(argument, str))]
     pub gamut_mapping: Option<GamutMappingMode>,
-    #[knuffel(property, str)]
+    #[knuffel(child, unwrap(argument, str))]
     pub colorspace: Option<HdrColorspace>,
-    #[knuffel(property, str)]
+    #[knuffel(child, unwrap(argument, str))]
     pub bit_depth: Option<HdrBitDepth>,
-    /// Transfer function for HDR encoding (pq or hlg).
-    /// PQ (ST 2084) is the default and most common HDR format.
-    /// HLG (Hybrid Log-Gamma) is used in broadcast HDR content.
-    #[knuffel(property, str)]
+    /// Transfer function for HDR encoding: "pq" or "hlg".
+    #[knuffel(child, unwrap(argument, str))]
     pub transfer_function: Option<HdrTransferFunction>,
 }
 
