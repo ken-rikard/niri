@@ -1280,7 +1280,7 @@ impl Tty {
         crtc: crtc::Handle,
     ) -> anyhow::Result<()> {
         let connector_name = format_connector_name(&connector);
-        warn!("connecting connector: {connector_name}");
+        debug!("connecting connector: {connector_name}");
 
         let device = self.devices.get_mut(&node).context("missing device")?;
 
@@ -1331,7 +1331,7 @@ impl Tty {
                         Some(caps)
                     }
                     None => {
-                        warn!("EDID parsed for {} but no HDR Static Metadata block found (or max_luminance == 0)", connector_name);
+                        debug!("EDID parsed for {} but no HDR Static Metadata block found (or max_luminance == 0)", connector_name);
                         None
                     }
                 }
@@ -2239,9 +2239,6 @@ impl Tty {
             None
         });
 
-        warn!("HDR render for {}: sdr_brightness={} nits, max_nits={} nits, sdr_intensity={}, gamut={}, tf={}", 
-              name.connector, sdr_brightness_nits, max_nits, sdr_color_intensity, gamut_mapping_mode, transfer_function);
-
         // Get passthrough app list from config.
         let passthrough_apps: Vec<String> = hdr_cfg
             .as_ref()
@@ -2289,9 +2286,9 @@ impl Tty {
 
         // Log passthrough state transitions.
         if any_passthrough && !*was_passthrough {
-            warn!("HDR passthrough: activated for output {}", name.connector);
+            debug!("HDR passthrough: activated for output {}", name.connector);
         } else if !any_passthrough && *was_passthrough {
-            warn!("HDR passthrough: deactivated for output {}", name.connector);
+            debug!("HDR passthrough: deactivated for output {}", name.connector);
         }
         *was_passthrough = any_passthrough;
 
@@ -3760,7 +3757,7 @@ impl HdrOutputMetadata {
             1 => 1, // HLG
             _ => 2, // PQ (default)
         };
-        info!("HdrOutputMetadata: transfer_function={}, eotf={} (0=SDR, 1=HLG, 2=PQ)", transfer_function, eotf);
+        debug!("HdrOutputMetadata: transfer_function={}, eotf={} (0=SDR, 1=HLG, 2=PQ)", transfer_function, eotf);
         Self {
             metadata_type: 0, // HDMI_STATIC_METADATA_TYPE1
             hdmi_metadata_type1: HdrMetadataInfoframe {

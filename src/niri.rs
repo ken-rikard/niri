@@ -1772,12 +1772,6 @@ impl State {
             let backdrop_color = Color32F::from(backdrop_color);
 
             if let Some(state) = self.niri.output_state.get_mut(output) {
-                // Log current HDR config for this output on reload.
-                if let Some(ref hdr) = config.and_then(|c| c.hdr.as_ref()) {
-                    warn!("Config reload: {} has HDR enabled={}, max_lum={:?}, sdr_intensity={:?}", 
-                          name.connector, hdr.enabled, hdr.max_luminance, hdr.sdr_color_intensity);
-                }
-
                 // Update HDR enabled state from config.
                 let new_hdr_enabled = config
                     .and_then(|c| c.hdr.as_ref())
