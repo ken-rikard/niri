@@ -170,7 +170,7 @@ impl<'render> RenderElement<TtyRenderer<'render>> for HdrWrappedElement<'render>
         opaque_regions: &[Rectangle<i32, Physical>],
         cache: Option<&UserDataMap>,
     ) -> Result<(), TtyRendererError<'render>> {
-        let (program, uniforms, treatment_name) = match self.treatment {
+        let (program, uniforms, _treatment_name) = match self.treatment {
             HdrTreatment::Convert => (
                 self.conversion_program.clone(),
                 self.conversion_uniforms(),
@@ -182,18 +182,6 @@ impl<'render> RenderElement<TtyRenderer<'render>> for HdrWrappedElement<'render>
                 "passthrough",
             ),
         };
-
-        // Log uniform values to diagnose cross-output leakage.
-        for u in &uniforms {
-            match u.value {
-                smithay::backend::renderer::gles::UniformValue::_1f(v) => {
-                    if u.name == "u_sdr_color_intensity" {
-                        warn!("HDR draw: elem={:?} treatment={} uniform={}={}", self.inner.id(), treatment_name, u.name, v);
-                    }
-                }
-                _ => {}
-            }
-        }
 
         // Set shader override before drawing.
         frame
