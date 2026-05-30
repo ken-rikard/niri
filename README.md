@@ -1,18 +1,111 @@
 <h1 align="center"><img alt="niri" src="https://github.com/user-attachments/assets/07d05cd0-d5dc-4a28-9a35-51bae8f119a0"></h1>
-<p align="center">A scrollable-tiling Wayland compositor.</p>
+<p align="center">A scrollable-tiling Wayland compositor — <strong>with HDR support</strong>.</p>
 <p align="center">
+    <em>This is <a href="https://github.com/ken-rikard/niri">ken-rikard/niri</a>, a feature fork of <a href="https://github.com/niri-wm/niri">niri-wm/niri</a> adding a full HDR rendering pipeline.</em>
+</p>
+<p align="center">
+    <a href="https://github.com/ken-rikard/niri/blob/main/LICENSE"><img alt="GitHub License" src="https://img.shields.io/github/license/ken-rikard/niri"></a>
+    <a href="https://github.com/ken-rikard/niri/compare/main...YaLTeR:niri:main"><img alt="Upstream diff" src="https://img.shields.io/badge/diff-upstream-blue"></a>
     <a href="https://matrix.to/#/#niri:matrix.org"><img alt="Matrix" src="https://img.shields.io/badge/matrix-%23niri-blue?logo=matrix"></a>
-    <a href="https://github.com/niri-wm/niri/blob/main/LICENSE"><img alt="GitHub License" src="https://img.shields.io/github/license/niri-wm/niri"></a>
-    <a href="https://github.com/niri-wm/niri/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/niri-wm/niri?logo=github"></a>
 </p>
 
-<p align="center">
-    <a href="https://niri-wm.github.io/niri/Getting-Started.html">Getting Started</a> | <a href="https://niri-wm.github.io/niri/Configuration%3A-Introduction.html">Configuration</a> | <a href="https://github.com/niri-wm/niri/discussions/325">Setup&nbsp;Showcase</a>
-</p>
+---
 
-<img width="1280" height="720" alt="niri with a few windows open" src="https://github.com/user-attachments/assets/dea5909e-1859-4aaa-9d88-d37f9663e00b" />
+## HDR Support
 
-## About
+This fork implements a **complete HDR rendering pipeline** for niri, supporting both PQ (ST 2084) and HLG transfer functions, SDR-to-HDR conversion, per-surface HDR passthrough, and ICC profile color correction.
+
+### ✨ HDR Features
+
+| Feature | Status |
+|---------|--------|
+| **PQ (Perceptual Quantizer) EOTF** — ST 2084 HDR10 rendering | ✅ Done |
+| **HLG (Hybrid Log-Gamma)** — ARIB STD-B67 broadcast HDR | ✅ Done |
+| **10-bit output** — `Xrgb2101010` framebuffer format with configurable bit depth | ✅ Done |
+| **DRM metadata** — Sets `HDR_OUTPUT_METADATA` blob and `Colorspace=BT2020_RGB` | ✅ Done |
+| **SDR→HDR conversion** — sRGB → linear light → BT.2020 → PQ encoding | ✅ Done |
+| **SDR color intensity** — Gamut expansion (`sdr-color-intensity`, range 0.0–2.0) | ✅ Done |
+| **Per-surface HDR passthrough** — Select apps output native HDR content | ✅ Done |
+| **Per-element shader rendering** — Single-pass, no offscreen texture | ✅ Done |
+| **Framebuffer fetch α-blending** — Correct blending in linear light (`GL_EXT_shader_framebuffer_fetch`) | ✅ Done |
+| **Gamut mapping** — Desaturate, clip, and relative-perceptual modes | ✅ Done |
+| **Dynamic metadata** — Configurable `max-cll`, `max-fall`, `min-luminance` | ✅ Done |
+| **ICC profile color correction** — v2/v4 RGB display profiles via `icc-profile` option | ✅ Done |
+| **EDID auto-configuration** — Reads display HDR capabilities from EDID on connect | ✅ Done |
+| **IPC runtime control** — `niri msg output <name> hdr true --sdr-color-intensity 1.2` | ✅ Done |
+| **Multiline HDR config** — Child-node syntax in `config.kdl` | ✅ Done |
+
+### 🎮 HDR Configuration
+
+Enable HDR in your `config.kdl` per output:
+
+```kdl
+output "HDMI-A-1" {
+    hdr {
+        enabled true
+        max-luminance 800.0
+        min-luminance 0.001
+        max-cll 800.0
+        max-fall 400.0
+        sdr-brightness 0.5
+        sdr-color-intensity 1.2
+        passthrough-apps "mpv,steam"
+        gamut-mapping "desaturate"
+        transfer-function "pq"
+    }
+    icc-profile "/path/to/display.icc"
+}
+```
+
+Or single-line syntax for quick configs:
+
+```kdl
+output "HDMI-A-1" hdr enabled=true max-luminance=800.0
+```
+
+If `hdr` is enabled without explicit luminance values, the compositor will attempt to read them from the display's EDID automatically. You can also use IPC to change settings at runtime:
+
+```sh
+niri msg output HDMI-A-1 hdr true --sdr-color-intensity 1.5 --gamut-mapping clip
+```
+
+### ⚙️ Architecture
+
+The HDR pipeline uses a **single-pass per-element rendering** approach:
+
+- Each `OutputRenderElements` is wrapped with `HdrWrappedElement`
+- The wrapper calls `override_default_tex_program()` before drawing each element
+- `GL_EXT_shader_framebuffer_fetch` decodes the PQ framebuffer and blends in linear light
+- **No offscreen texture** — the DRM compositor handles damage tracking natively
+- **Same performance as SDR rendering** — no extra FBO bind or GPU sync
+
+Requires a [Smithay patch](patches/smithay-tex-program-override-stack.patch) for stackable shader overrides (needed for rounded corners + HDR).
+
+### 🔧 Building
+
+```sh
+# Apply the required Smithay patch first
+git apply patches/smithay-tex-program-override-stack.patch -p7
+# or: patch -p1 < patches/smithay-tex-program-override-stack.patch
+
+# Build as usual
+cargo build --release
+```
+
+The patch modifies Smithay's GLES renderer to support stacking shader program overrides. See the [patch file](patches/smithay-tex-program-override-stack.patch) for details.
+
+### 🧪 Memory Leak Note
+
+The HDR shader system was observed to cause an OOM crash (~38 GB) when `shaders::init()` was called every frame without idempotency checks. This has been fixed — shader initialization is now guarded against recompilation. If you see memory growth, file an issue.
+
+### 🐞 Known Issues
+
+- **Cursor plane artifact**: A small transparent square may appear around the cursor on some GPU/driver combinations when HDR is active (`ALLOW_CURSOR_PLANE_SCANOUT` is disabled, but cursor `Kind::Cursor` may trigger other scanout paths).
+- **Smithay patch dependency**: The stackable shader override patch must be applied to Smithay before building.
+
+---
+
+## About Niri
 
 Windows are arranged in columns on an infinite strip going to the right.
 Opening a new window never causes existing windows to resize.
@@ -75,7 +168,7 @@ We have touchpad gestures, but no touchscreen gestures yet.
 - **Wlr protocols**: yes, we have most of the important ones like layer-shell, gamma-control, screencopy.
 You can check on [wayland.app](https://wayland.app) at the bottom of each protocol's page.
 - **Performance**: while I run niri on beefy machines, I try to stay conscious of performance.
-I've seen someone use it fine on an Eee PC 900 from 2008, of all things.
+I've seen someone use it fine on an Eee PC 900 from 2008, of all things.
 - **Xwayland**: [integrated](https://niri-wm.github.io/niri/Xwayland.html#using-xwayland-satellite) via xwayland-satellite starting from niri 25.08.
 
 ## Media
@@ -99,6 +192,8 @@ An LWN article with a nice overview and introduction to niri.
 If you'd like to help with niri, there are plenty of both coding- and non-coding-related ways to do so.
 See [CONTRIBUTING.md](https://github.com/niri-wm/niri/blob/main/CONTRIBUTING.md) for an overview.
 
+HDR-specific contributions are especially welcome! See [docs/hdr-implementation-plan.md](docs/hdr-implementation-plan.md) for the roadmap and [docs/hdr-testing-checklist.md](docs/hdr-testing-checklist.md) for testing procedures.
+
 ## Inspiration
 
 Niri is heavily inspired by [PaperWM] which implements scrollable tiling on top of GNOME Shell.
@@ -115,6 +210,12 @@ Here are some other projects which implement a similar workflow:
 - [scroll](https://github.com/dawsers/scroll) and [papersway]: scrollable tiling on top of sway/i3.
 - Hyprland has a built-in [scrolling layout](https://wiki.hypr.land/Configuring/Layouts/Scrolling-Layout/).
 - [Paneru] and [PaperWM.spoon]: scrollable tiling on top of macOS.
+
+## Upstream
+
+This is a feature fork of [niri-wm/niri](https://github.com/niri-wm/niri) by Ivan Molodetskikh.
+All HDR-specific additions are being prepared for upstream merge.
+The [feature/hdr-support](https://github.com/ken-rikard/niri/tree/feature/hdr-support) branch contains the PR-ready commit series.
 
 ## Contact
 
