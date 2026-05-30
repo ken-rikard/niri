@@ -11,37 +11,48 @@ This is the fork `ken-rikard/niri` implementing HDR support for the niri Wayland
 
 | Branch | Role |
 |--------|------|
-| `feature/hdr-support` | Stable integration branch. Contains only clean, squashed milestones. Currently at **Phase 3 (ICC) + Phase 10A (EDID auto-config)**. |
-| `feature/hdr-sdr-intensity` | Phase 1 dev branch. Preserves full trial-and-error history (9 commits). |
-| `feature/hdr-color-aware` | Phase 2 — per-surface color awareness. Per-element passthrough implemented. ⚠️ **NOT YET TESTED** on real HDR display. |
-| `feature/hdr-gamut-mapping` | Phase 4 — gamut mapping. ✅ Merged into hdr-support. Preserves full dev history. |
-| `feature/hdr-dynamic-meta` | Phase 5 — dynamic metadata. ✅ Merged into hdr-support. |
-| `feature/hdr-hlg` | Phase 6 — HLG support. ✅ Merged into hdr-support. Preserves full dev history. |
-| `feature/hdr-icc-profiles` | Phase 3 — ICC profile support. ✅ Merged into hdr-support. Preserves full dev history. |
-| `feature/hdr-calibration-wizard` | Phase 10 — HDR calibration wizard. 🚧 **IN PROGRESS** (EDID auto-config 10.2 implemented). |
+| `main` | **Fork default branch.** Contains all HDR features + full dev history + documentation. This is the fork's showcase branch. |
+| `feature/hdr-support` | **PR-ready branch** for upstream submission. Based on latest `upstream/main`. Clean single-merge commit with no internal dev files or debug history. |
+| `feature/hdr-calibration-wizard` | Current development branch. Based on `feature/hdr-support`. 🚧 **IN PROGRESS** (Phase 10: HDR calibration wizard). |
+| `feature/hdr-sdr-intensity` | Historical Phase 1 dev branch. Content already merged into `main`. |
+| `feature/hdr-color-aware` | Historical Phase 2 dev branch. Content already merged into `main`. |
+| `feature/hdr-gamut-mapping` | Historical Phase 4 dev branch. Content already merged into `main`. |
+| `feature/hdr-dynamic-meta` | Historical Phase 5 dev branch. Content already merged into `main`. |
+| `feature/hdr-hlg` | Historical Phase 6 dev branch. Content already merged into `main`. |
+| `feature/hdr-icc-profiles` | Historical Phase 3 dev branch. Content already merged into `main`. |
 
-## Required Git Workflow
+## Git Workflow
 
-**When integrating a completed phase into `feature/hdr-support`:**
-
-1. Use `--squash` merge. The stable branch must NEVER contain fixup/debug/refactor commits.
-2. Keep the original feature branch intact (preserves full dev history).
-3. After squashing into `hdr-support`, rebase all dependent phase branches onto the new HEAD.
-4. Force-push `hdr-support` and the rebased branches when necessary.
+### To prepare an upstream PR from `feature/hdr-support`:
 
 ```bash
-# Integrate a completed phase
+# Rebase on latest upstream/main
 git checkout feature/hdr-support
-git merge --squash feature/hdr-PHASE
-git commit -m "feat(HDR): Phase N — description"
-git push --force-with-lease origin feature/hdr-support
+git pull --rebase upstream main
 
-# Rebase dependent branches
-for b in feature/hdr-color-aware feature/hdr-gamut-mapping ...; do
-  git checkout $b
-  git rebase feature/hdr-support
-  git push --force-with-lease origin $b
-done
+# Force-push to update the PR
+git push --force-with-lease origin feature/hdr-support
+```
+
+### To develop a new feature on `feature/hdr-calibration-wizard`:
+
+```bash
+# Create dev branch from hdr-support
+git checkout -b feature/my-new-feature feature/hdr-support
+
+# When ready, merge back into calibration-wizard
+git checkout feature/hdr-calibration-wizard
+git merge --no-ff feature/my-new-feature
+```
+
+### To sync `main` with upstream:
+
+```bash
+git fetch upstream
+git checkout main
+git rebase upstream/main
+# Fix conflicts, then:
+git push --force-with-lease origin main
 ```
 
 ## Key Files
